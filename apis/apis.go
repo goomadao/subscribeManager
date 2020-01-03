@@ -12,12 +12,13 @@ import (
 	"go.uber.org/zap"
 )
 
-var Router *gin.Engine
+var router *gin.Engine
 
+//InitGin init gin router
 func InitGin(port int) {
-	Router := gin.Default()
-	Router.GET("/api/add", add)
-	Router.Run(":" + strconv.Itoa(port))
+	router := gin.Default()
+	router.GET("/api/add", add)
+	router.Run(":" + strconv.Itoa(port))
 }
 
 func add(c *gin.Context) {
@@ -58,9 +59,9 @@ func addNode(c *gin.Context) {
 
 func addGroup(c *gin.Context) {
 	name := c.Query("name")
-	groupUrl := c.Query("url")
+	groupURL := c.Query("url")
 	if len(name) == 0 {
-		temp, err := url.Parse(groupUrl)
+		temp, err := url.Parse(groupURL)
 		if err != nil {
 			logger.Logger.Panic("Parse url fail.",
 				zap.Error(err))
@@ -69,7 +70,7 @@ func addGroup(c *gin.Context) {
 	}
 	group := data.Group{
 		Name: name,
-		Url:  groupUrl,
+		URL:  groupURL,
 	}
 	err := config.AddGroup(group)
 	if err != nil {

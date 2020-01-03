@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -23,29 +24,33 @@ import (
 )
 
 var (
-	config   *data.Config
+	config *data.Config
+	//CfgFile - location of config file
 	CfgFile  string
 	cfgMutex *sync.RWMutex
 )
 
+//InitConfig init rwMutex
 func InitConfig() {
 	cfgMutex = new(sync.RWMutex)
 	loadConfig()
 }
 
 func writeToFile() error {
-	if len(config.Groups) == 1 {
-		return nil
-	}
-	bts, err := yaml.Marshal(config.Groups[1])
-	// bts, err := yaml.Marshal(config)
+	// if len(config.Groups) == 1 {
+	// 	return nil
+	// }
+	// bts, err := yaml.Marshal(config.Groups[1])
+	bts, err := yaml.Marshal(config)
 	if err != nil {
+		logger.Logger.Warn(err.Error())
 		return err
 	}
 	cfgMutex.Lock()
 	err = ioutil.WriteFile(CfgFile, bts, 0644)
 	cfgMutex.Unlock()
 	if err != nil {
+		logger.Logger.Warn(err.Error())
 		return err
 	}
 	return nil
@@ -75,7 +80,7 @@ func loadConfig() {
 			// }
 			group := data.Group{
 				Name: "Default",
-				Url:  "",
+				URL:  "",
 				// Nodes: []*data.Node{},
 				// LastUpdate: time.Now(),
 			}
@@ -103,7 +108,7 @@ func loadConfig() {
 	logger.Logger.Info("Unmarshal from config file success.")
 }
 
-//Add single nodes to default group
+//AddNode adds single nodes to default group
 func AddNode(node data.Node) error {
 	loadConfig()
 	err := nodeDuplicate(node)
@@ -123,12 +128,14 @@ func AddNode(node data.Node) error {
 func nodeDuplicate(node data.Node) error {
 	for _, val := range config.Groups[0].Nodes {
 		if val.Name == node.Name {
-			return errors.New("Node duplicates.")
+			logger.Logger.Warn("Node duplicates")
+			return errors.New("Node duplicates")
 		}
 	}
 	return nil
 }
 
+//AddGroup adds new group
 func AddGroup(group data.Group) error {
 	loadConfig()
 	err := groupDuplicate(group)
@@ -151,7 +158,8 @@ func AddGroup(group data.Group) error {
 func groupDuplicate(group data.Group) error {
 	for _, val := range config.Groups {
 		if val.Name == group.Name {
-			return errors.New("Group duplicates.")
+			logger.Logger.Warn("Group duplicates")
+			return errors.New("Group duplicates")
 		}
 	}
 	return nil
@@ -166,21 +174,23 @@ func updateGroup(name string) error {
 		}
 	}
 	if index == -1 {
-		return errors.New("No such group.")
+		logger.Logger.Warn("No such group")
+		return errors.New("No such group")
 	}
-	resp, err := http.Get(config.Groups[index].Url)
-	fmt.Println(config.Groups[index].Url)
+	resp, err := http.Get(config.Groups[index].URL)
+	fmt.Println(config.Groups[index].URL)
 	if err != nil {
+		logger.Logger.Warn(err.Error())
 		return err
 	}
 	defer resp.Body.Close()
 	s, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		logger.Logger.Warn(err.Error())
 		return err
 	}
 	nodes, err := decode(s)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	config.Groups[index].Nodes = nodes
@@ -195,21 +205,21 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 	decodeBytes, err := base64.RawURLEncoding.DecodeString(string(bts))
 	if err == nil {
 		if strings.Index(string(decodeBytes), "vmess") == 0 {
-			// fmt.Println("vmess")
-			// fmt.Println(string(decodeBytes))
+			nodes, _ = decodeVmess(decodeBytes)
+			return nodes, nil
 		} else if strings.Index(string(decodeBytes), "ssr") == 0 {
-			nodes, err = decodeSSR(decodeBytes)
-			if err != nil {
-				return nil, errors.New("Decode ssr subscribe fail.")
-			}
+			nodes, _ = decodeSSR(decodeBytes)
+			// if err != nil {
+			// 	return nil, err
+			// }
 			return nodes, nil
 		} else if strings.Index(string(decodeBytes), "ss") == 0 {
 			// fmt.Println("ss")
 			// fmt.Println(string(decodeBytes))
-			nodes, err = decodeSS(decodeBytes)
-			if err != nil {
-				return nil, err
-			}
+			nodes, _ = decodeSS(decodeBytes)
+			// if err != nil {
+			// 	return nil, err
+			// }
 			return nodes, nil
 		}
 	}
@@ -219,11 +229,11 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 		fmt.Println(nodes)
 		return nodes, nil
 	}
-	return nil, err
+	return nil, nil
+	// return nil, err
 }
 
 func decodeClash(bts []byte) (nodes []data.Node, err error) {
-	fmt.Println("aslkdjkasjdkajkdjsakljdklsj", string(bts))
 	clash := data.Clash{}
 	err = yaml.Unmarshal(bts, &clash)
 	if err != nil {
@@ -231,6 +241,66 @@ func decodeClash(bts []byte) (nodes []data.Node, err error) {
 		return nil, err
 	}
 	return clash.Proxy, nil
+}
+
+func decodeVmess(bts []byte) (nodes []data.Node, err error) {
+	vmessLinks := bytes.Split(bts, []byte("\n"))
+	for _, v := range vmessLinks {
+		if bytes.Index(v, []byte("vmess://")) == -1 {
+			continue
+		}
+		node, err := decodeVmessLink(v[8:])
+		if err != nil {
+
+		} else {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes, nil
+}
+
+func decodeVmessLink(bts []byte) (node data.Node, err error) {
+	vmess, err := base64.StdEncoding.DecodeString(string(bts))
+	if err != nil {
+		logger.Logger.Warn("Decode vmess link fail", zap.Error(err))
+		return data.Node{}, err
+	}
+	var vmessStruct data.Node
+	if err := json.Unmarshal(vmess, &vmessStruct); err != nil {
+		logger.Logger.Warn("Turn vmess json to struct fail",
+			zap.Error(err))
+		return data.Node{}, err
+	}
+	vmessStruct.Type = "vmess"
+	vmessStruct.Cipher = "auto"
+	vmessStruct.Name = vmessStruct.VmessPs
+	vmessStruct.Server = vmessStruct.VmessAdd
+	vmessStruct.Port = vmessStruct.VmessPort
+	vmessStruct.UUID = vmessStruct.VmessID
+	vmessStruct.AlterID = vmessStruct.VmessAid
+	vmessStruct.Network = vmessStruct.VmessNet
+	vmessStruct.WSPath = vmessStruct.VmessPath
+	vmessStruct.WSHeaders.Host = vmessStruct.VmessHost
+	if vmessStruct.VmessTLS == "tls" {
+		vmessStruct.TLS = true
+	}
+	return vmessStruct, nil
+}
+
+func getIntFromMap(from map[string]interface{}, field string) int {
+	if from[field] == nil {
+		return 0
+	}
+	fmt.Println(field)
+	return int(from[field].(float64))
+}
+
+func getStringFromMap(from map[string]interface{}, field string) string {
+	if from[field] == nil {
+		return ""
+	}
+	fmt.Println(field)
+	return from[field].(string)
 }
 
 func decodeSSR(bts []byte) (nodes []data.Node, err error) {
@@ -241,10 +311,10 @@ func decodeSSR(bts []byte) (nodes []data.Node, err error) {
 		}
 		node, err := decodeSSRLink(v[6:])
 		if err != nil {
-			fmt.Println(err.Error())
-			return nil, err
+			// return nil, err
+		} else {
+			nodes = append(nodes, node)
 		}
-		nodes = append(nodes, node)
 	}
 	return nodes, nil
 }
@@ -253,40 +323,48 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 	fmt.Println(string(bts))
 	ssr, err := base64.RawURLEncoding.DecodeString(string(bts))
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr link fail.")
+		logger.Logger.Warn("Decode ssr link fail")
+		return data.Node{}, errors.New("Decode ssr link fail")
 	}
 	pos := bytes.Index(ssr, []byte("/?"))
 	//get info before '/?'
 	first := bytes.Split(ssr[:pos], []byte(":"))
 	password, err := base64.RawURLEncoding.DecodeString(string(first[5]))
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr password fail.")
+		logger.Logger.Warn("Decode ssr password fail")
+		return data.Node{}, errors.New("Decode ssr password fail")
 	}
 	port, err := strconv.Atoi(string(first[1]))
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr port fail.")
+		logger.Logger.Warn("Decode ssr port fail")
+		return data.Node{}, errors.New("Decode ssr port fail")
 	}
 	//get info after '/?'
-	tempUrl, err := url.Parse("https://get.param" + string(ssr[pos:]))
+	tempURL, err := url.Parse("https://get.param" + string(ssr[pos:]))
 	if err != nil {
-		return data.Node{}, errors.New("Parse second ssr link to url fail.")
+		logger.Logger.Warn("Parse second ssr link to url fail")
+		return data.Node{}, errors.New("Parse second ssr link to url fail")
 	}
-	query := tempUrl.Query()
+	query := tempURL.Query()
 	name, err := base64.RawURLEncoding.DecodeString(query["remarks"][0])
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr name fail.")
+		logger.Logger.Warn("Decode ssr name fail")
+		return data.Node{}, errors.New("Decode ssr name fail")
 	}
 	protocolParam, err := base64.RawURLEncoding.DecodeString(query["protoparam"][0])
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr protocol param fail.")
+		logger.Logger.Warn("Decode ssr protocol param fail")
+		return data.Node{}, errors.New("Decode ssr protocol param fail")
 	}
 	obfsParam, err := base64.RawURLEncoding.DecodeString(query["obfsparam"][0])
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr obfs param fail.")
+		logger.Logger.Warn("Decode ssr obfs param fail")
+		return data.Node{}, errors.New("Decode ssr obfs param fail")
 	}
 	group, err := base64.RawURLEncoding.DecodeString(query["group"][0])
 	if err != nil {
-		return data.Node{}, errors.New("Decode ssr group fail.")
+		logger.Logger.Warn("Decode ssr group fail")
+		return data.Node{}, errors.New("Decode ssr group fail")
 	}
 
 	node = data.Node{
@@ -314,9 +392,10 @@ func decodeSS(bts []byte) (nodes []data.Node, err error) {
 		}
 		node, err := decodeSSLink(v[5:])
 		if err != nil {
-			return nil, err
+			// return nil, err
+		} else {
+			nodes = append(nodes, node)
 		}
-		nodes = append(nodes, node)
 	}
 	return nodes, nil
 }
@@ -331,7 +410,8 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		}
 		allBytes, err := base64.RawURLEncoding.DecodeString(string(bts[:pos1]))
 		if err != nil {
-			logger.Logger.Warn("Decode ss cipher, password, server and port fail.")
+			logger.Logger.Warn("Decode ss cipher, password, server and port fail.",
+				zap.Error(err))
 			return data.Node{}, err
 		}
 		all := bytes.Split(allBytes, []byte("@"))
@@ -345,7 +425,9 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		pos1 := bytes.IndexByte(bts, '@')
 		cipherAndPasswordBytes, err = base64.RawURLEncoding.DecodeString(string(bts[:pos1]))
 		if err != nil {
-			return data.Node{}, errors.New("Decode ss cipher and password fail.")
+			logger.Logger.Warn("Decode ss cipher and password fail",
+				zap.Error(err))
+			return data.Node{}, errors.New("Decode ss cipher and password fail")
 		}
 
 		pos2 := bytes.IndexAny(bts, "/?#")
@@ -379,6 +461,7 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		}
 		pluginStr, err := url.QueryUnescape(string(bts[pos4+8 : pos5]))
 		if err != nil {
+			logger.Logger.Warn(err.Error())
 			return data.Node{}, err
 		}
 		pluginParams := strings.Split(pluginStr, ";")
@@ -402,7 +485,9 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 	if pos6 != -1 {
 		tag, err = url.QueryUnescape(string(bts[pos6+1:]))
 		if err != nil {
-			return data.Node{}, errors.New("Decode ss tag fail.")
+			logger.Logger.Warn("Decode ss tag fail",
+				zap.Error(err))
+			return data.Node{}, errors.New("Decode ss tag fail")
 		}
 	}
 
