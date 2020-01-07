@@ -18,6 +18,9 @@ var router *gin.Engine
 func InitGin(port int) {
 	router := gin.Default()
 	router.GET("/api/add", add)
+	router.POST("/api/add", add)
+	router.GET("/api/clash", generateClash)
+	router.POST("/api/update", update)
 	router.Run(":" + strconv.Itoa(port))
 }
 
@@ -28,6 +31,10 @@ func add(c *gin.Context) {
 		addNode(c)
 	case "group":
 		addGroup(c)
+	case "selector":
+		addSelector(c)
+	case "rule":
+		addRule(c)
 	}
 }
 
@@ -39,7 +46,12 @@ func addNode(c *gin.Context) {
 	server := c.Query("server")
 	port, err := strconv.Atoi(c.Query("port"))
 	if err != nil {
-		logger.Logger.Error("Parse port to int fail.")
+		logger.Logger.Error("Parse port to int fail")
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"error":  "Parse port to int fail",
+		})
+		return
 	}
 	node := data.Node{
 		Type:     types,
@@ -51,10 +63,16 @@ func addNode(c *gin.Context) {
 	}
 	err = config.AddNode(node)
 	if err != nil {
-		c.String(http.StatusOK, err.Error())
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
 		return
 	}
-	c.String(http.StatusOK, "Add node success.")
+	c.JSON(http.StatusOK, gin.H{
+		"status": "fail",
+		"msg":    "Add node success",
+	})
 }
 
 func addGroup(c *gin.Context) {
@@ -63,8 +81,13 @@ func addGroup(c *gin.Context) {
 	if len(name) == 0 {
 		temp, err := url.Parse(groupURL)
 		if err != nil {
-			logger.Logger.Panic("Parse url fail.",
+			logger.Logger.Panic("Parse url fail",
 				zap.Error(err))
+			c.JSON(http.StatusOK, gin.H{
+				"status": "fail",
+				"error":  "Parse url fail",
+			})
+			return
 		}
 		name = temp.Host
 	}
@@ -74,8 +97,68 @@ func addGroup(c *gin.Context) {
 	}
 	err := config.AddGroup(group)
 	if err != nil {
-		c.String(http.StatusOK, err.Error())
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
 		return
 	}
-	c.String(http.StatusOK, "Add group success.")
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"msg":    "Add group success",
+	})
+}
+
+func addSelector(c *gin.Context) {
+	var selector data.ClashProxyGroupSelector
+	c.BindJSON(&selector)
+	err := config.AddSelector(selector)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"msg":    "Add selector success",
+	})
+}
+
+func addRule(c *gin.Context) {
+	var rule data.Rule
+	c.BindJSON(&rule)
+	// name := c.Query("name")
+	// url := c.Query("url")
+	// rule := data.Rule{
+	// 	Name: name,
+	// 	URL:  url,
+	// }
+	err := config.AddRule(rule)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"msg":    "Add rule success",
+	})
+}
+
+func generateClash(c *gin.Context) {
+	clashFile := config.GenerateClashConfig()
+	// c.String()
+	c.String(http.StatusOK, string(clashFile))
+}
+
+func update(c *gin.Context) {
+	class := c.Query("class")
+	switch class {
+	case "all":
+		config.UpdateAll()
+	}
 }

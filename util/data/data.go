@@ -4,7 +4,50 @@ import (
 	"time"
 )
 
-//Plugin - ss plugin
+//SS struct
+type SS struct {
+	Server string `yaml:"-" json:"server,omitempty"`
+	// ID            int    `yaml:"-" json:"id,omitempty"`
+	// Ratio         int    `yaml:"-" json:"ratio,omitempty"`
+	Name          string `yaml:"-" json:"remarks,omitempty"`
+	Port          int    `yaml:"-" json:"port,omitempty"`
+	Cipher        string `yaml:"-" json:"encryption,omitempty"`
+	Password      string `yaml:"-" json:"password,omitempty"`
+	Plugin        string `yaml:"-" json:"plugin,omitempty"`
+	PluginOptions string `yaml:"-" json:"plugin_options,omitempty"`
+}
+
+//SSR struct
+type SSR struct {
+	Server        string
+	Port          int
+	Cipher        string
+	Password      string
+	Name          string
+	Protocol      string
+	ProtocolParam string
+	Obfs          string
+	ObfsParam     string
+	Group         string
+}
+
+//Vmess link json format
+type Vmess struct {
+	Host    string `yaml:"-" json:"host,omitempty"`
+	Path    string `yaml:"-" json:"path,omitempty"`
+	TLS     string `yaml:"-" json:"tls,omitempty"`
+	Server  string `yaml:"-" json:"add,omitempty"`
+	Port    int    `yaml:"-" json:"port,omitempty"`
+	AlterID int    `yaml:"-" json:"aid,omitempty"`
+	Network string `yaml:"-" json:"net,omitempty"`
+	Type    string `yaml:"-" json:"type,omitempty"`
+	V       string `yaml:"-" json:"v,omitempty"`
+	Name    string `yaml:"-" json:"ps,omitempty"`
+	UUID    string `yaml:"-" json:"id,omitempty"`
+	Class   int    `yaml:"-" json:"class,omitempty"`
+}
+
+//Plugin - ss plugin in clash
 type Plugin struct {
 	Obfs     string `yaml:"mode"`
 	ObfsHost string `yaml:"host"`
@@ -17,7 +60,6 @@ type WSHeaders struct {
 
 //Node - ss,ssr or vmess in clash
 type Node struct {
-	//Clash
 	Type          string    `json:"-" yaml:"type"`
 	Cipher        string    `json:"-" yaml:"cipher"`
 	Password      string    `json:"-" yaml:"password"`
@@ -37,30 +79,32 @@ type Node struct {
 	Network       string    `json:"-" yaml:"network,omitempty"`
 	WSPath        string    `json:"-" yaml:"ws-path,omitempty"`
 	WSHeaders     WSHeaders `json:"-" yaml:"ws-headers,omitempty"`
-	//Vmess
-	VmessHost  string `yaml:"-" json:"host,omitempty"`
-	VmessPath  string `yaml:"-" json:"path,omitempty"`
-	VmessTLS   string `yaml:"-" json:"tls,omitempty"`
-	VmessAdd   string `yaml:"-" json:"add,omitempty"`
-	VmessPort  int    `yaml:"-" json:"port,omitempty"`
-	VmessAid   int    `yaml:"-" json:"aid,omitempty"`
-	VmessNet   string `yaml:"-" json:"net,omitempty"`
-	VmessType  string `yaml:"-" json:"type,omitempty"`
-	VmessV     string `yaml:"-" json:"v,omitempty"`
-	VmessPs    string `yaml:"-" json:"ps,omitempty"`
-	VmessID    string `yaml:"-" json:"id,omitempty"`
-	VmessClass int    `yaml:"-" json:"class,omitempty"`
+
+	SS    SS    `yaml:"-"`
+	SSR   SSR   `yaml:"-"`
+	Vmess Vmess `yaml:"-"`
+}
+
+//ProxyGroup - clash proxy group option
+type ProxyGroup struct {
+	Name     string   `yaml:"name"`
+	Type     string   `yaml:"type"`
+	URL      string   `yaml:"url,omitempty"`
+	Interval int      `yaml:"interval,omitempty"`
+	Proxies  []string `yaml:"proxies"`
 }
 
 //Clash - clash config
 type Clash struct {
-	Port               int    `yaml:"port"`
-	SocksPort          int    `yaml:"socks-port"`
-	AllowLan           bool   `yaml:"allow-lan"`
-	Mode               string `yaml:"rule"`
-	LogLevel           string `yaml:"log-level"`
-	ExternalController string `yaml:"external-controller"`
-	Proxy              []Node `yaml:"Proxy"`
+	Port               int          `yaml:"port"`
+	SocksPort          int          `yaml:"socks-port"`
+	AllowLan           bool         `yaml:"allow-lan"`
+	Mode               string       `yaml:"rule"`
+	LogLevel           string       `yaml:"log-level"`
+	ExternalController string       `yaml:"external-controller"`
+	Proxy              []Node       `yaml:"Proxy"`
+	ProxyGroup         []ProxyGroup `yaml:"Proxy Group"`
+	Rule               []string     `yaml:"Rule"`
 }
 
 //Group - a group of ss, ssr or v2ray
@@ -71,7 +115,34 @@ type Group struct {
 	LastUpdate time.Time `yaml:"lastUpdate"`
 }
 
+//ProxySelector - using regex to select specific proxies in group
+type ProxySelector struct {
+	GroupName string `yaml,json:"groupName"`
+	Regex     string `yaml,json:"regex"`
+}
+
+//ClashProxyGroupSelector - determine how to select proxies from groups for clash
+type ClashProxyGroupSelector struct {
+	Name          string          `yaml:"name"`
+	Type          string          `yaml:"type"`
+	URL           string          `yaml:"url,omitempty"`
+	Interval      int             `yaml:"interval,omitempty"`
+	ProxyGroups   []string        `yaml:"proxyGroups"`
+	ProxySelector []ProxySelector `yaml:"proxySelector"`
+	Proxies       []Node          `yaml:"proxies"`
+}
+
+//Rule - rules
+type Rule struct {
+	Name       string    `yaml:"name"`
+	URL        string    `yaml:"url"`
+	Rules      []string  `yaml:"rules"`
+	LastUpdate time.Time `yaml:"lastUpdate"`
+}
+
 //Config - config file for subscribe manager
 type Config struct {
-	Groups []Group `yaml:"Groups"`
+	Groups    []Group                   `yaml:"groups"`
+	Selectors []ClashProxyGroupSelector `yaml:"selectors"`
+	Rules     []Rule                    `yaml:"rules"`
 }
