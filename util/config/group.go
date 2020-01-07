@@ -1,11 +1,10 @@
 package config
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"net/http"
 	"strings"
 	"time"
 
@@ -58,8 +57,7 @@ func updateGroup(name string) error {
 		logger.Logger.Warn("No such group")
 		return errors.New("No such group")
 	}
-	resp, err := http.Get(config.Groups[index].URL)
-	fmt.Println(config.Groups[index].URL)
+	resp, err := client.Get(config.Groups[index].URL)
 	if err != nil {
 		logger.Logger.Warn("HTTP request for "+config.Groups[index].URL+" fail",
 			zap.Error(err))
@@ -84,6 +82,12 @@ func updateGroup(name string) error {
 }
 
 func decode(bts []byte) (nodes []data.Node, err error) {
+	//try ssd
+	if bytes.Index(bts, []byte("ssd://")) == 0 {
+		nodes, _ := decodeSSD(bts[6:])
+		return nodes, nil
+	}
+
 	//try ss/ssr/vmess
 	decodeBytes, err := base64.RawURLEncoding.DecodeString(string(bts))
 	if err == nil {
@@ -109,7 +113,6 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 
 	nodes, err = decodeClash(bts)
 	if err == nil {
-		fmt.Println(nodes)
 		return nodes, nil
 	}
 	return nil, nil

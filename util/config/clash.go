@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/goomadao/subscribeManager/util/data"
 	"github.com/goomadao/subscribeManager/util/logger"
 	"go.uber.org/zap"
@@ -103,10 +101,10 @@ func GenerateClashConfig() []byte {
 	}
 	clashFile, err := yaml.Marshal(clash)
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.Logger.Warn("Marshal clash config fail",
+			zap.Error(err))
 		return nil
 	}
-	fmt.Println(string(clashFile))
 	return clashFile
 }
 

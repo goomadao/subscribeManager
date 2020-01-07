@@ -11,6 +11,8 @@ import (
 
 	"github.com/goomadao/subscribeManager/util/data"
 	"github.com/goomadao/subscribeManager/util/logger"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/json-iterator/go/extra"
 
 	"gopkg.in/yaml.v2"
 )
@@ -18,9 +20,10 @@ import (
 var (
 	config *data.Config
 	//CfgFile - location of config file
-	CfgFile  string
-	cfgMutex *sync.RWMutex
-	client   *http.Client
+	CfgFile      string
+	cfgMutex     *sync.RWMutex
+	client       *http.Client
+	jsonIterator jsoniter.API
 )
 
 //InitConfig init rwMutex
@@ -35,6 +38,9 @@ func InitConfig() {
 	client = &http.Client{
 		Transport: tr,
 	}
+
+	extra.RegisterFuzzyDecoders()
+	jsonIterator = jsoniter.ConfigCompatibleWithStandardLibrary
 }
 
 func writeToFile() error {

@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 
 	"github.com/goomadao/subscribeManager/util/data"
 	"github.com/goomadao/subscribeManager/util/logger"
@@ -33,7 +32,7 @@ func decodeVmessLink(bts []byte) (node data.Node, err error) {
 		return data.Node{}, err
 	}
 	var vmessStruct data.Vmess
-	if err := json.Unmarshal(vmess, &vmessStruct); err != nil {
+	if err := jsonIterator.Unmarshal(vmess, &vmessStruct); err != nil {
 		logger.Logger.Warn("Turn vmess json to struct fail",
 			zap.Error(err))
 		return data.Node{}, err

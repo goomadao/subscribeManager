@@ -6,9 +6,9 @@ import (
 
 //SS struct
 type SS struct {
-	Server string `yaml:"-" json:"server,omitempty"`
-	// ID            int    `yaml:"-" json:"id,omitempty"`
-	// Ratio         int    `yaml:"-" json:"ratio,omitempty"`
+	Server        string `yaml:"-" json:"server"`
+	ID            int    `yaml:"-" json:"id,omitempty"`
+	Ratio         int    `yaml:"-" json:"ratio,omitempty"`
 	Name          string `yaml:"-" json:"remarks,omitempty"`
 	Port          int    `yaml:"-" json:"port,omitempty"`
 	Cipher        string `yaml:"-" json:"encryption,omitempty"`
@@ -45,6 +45,21 @@ type Vmess struct {
 	Name    string `yaml:"-" json:"ps,omitempty"`
 	UUID    string `yaml:"-" json:"id,omitempty"`
 	Class   int    `yaml:"-" json:"class,omitempty"`
+}
+
+//SSD - ssd subscribe
+type SSD struct {
+	Airport       string  `yaml:"-" json:"airport"`
+	Port          int     `yaml:"-" json:"port"`
+	Cipher        string  `yaml:"-" json:"encryption"`
+	Password      string  `yaml:"-" json:"password"`
+	Servers       []SS    `yaml:"-" json:"servers"`
+	Plugin        string  `yaml:"-" json:"plugin,omitempty"`
+	PluginOptions string  `yaml:"-" json:"plugin_options,omitempty"`
+	TrafficUsed   float64 `yaml:"-" json:"traffic_used,omitempty"`
+	TrafficTotal  float64 `yaml:"-" json:"traffic_total,omitempty"`
+	Expiry        string  `yaml:"-" json:"expiry,omitempty"`
+	URL           string  `yaml:"-" json:"url,omitempty"`
 }
 
 //Plugin - ss plugin in clash
