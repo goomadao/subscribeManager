@@ -108,6 +108,9 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		for i, v := range pluginParams {
 			if i == 0 {
 				plugin = v
+				if plugin == "obfs-local" {
+					plugin = "simple-obfs"
+				}
 			} else {
 				opts := strings.Split(v, "=")
 				if opts[0] == "obfs" {
@@ -131,25 +134,67 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		}
 	}
 
-	node = data.Node{
-		Type:       "ss",
-		Cipher:     string(cipher),
-		Password:   string(password),
-		Name:       tag,
-		Server:     string(server),
-		Port:       port,
-		Plugin:     plugin,
-		PluginOpts: pluginOpts,
-	}
+	// node = data.Node{
+	// 	Type:       "ss",
+	// 	Cipher:     string(cipher),
+	// 	Password:   string(password),
+	// 	Name:       tag,
+	// 	Server:     string(server),
+	// 	Port:       port,
+	// 	Plugin:     plugin,
+	// 	PluginOpts: pluginOpts,
+	// }
 	node.SS = data.SS{
-		Server:        node.Server,
-		Name:          node.Name,
-		Port:          node.Port,
-		Cipher:        node.Cipher,
-		Password:      node.Password,
-		Plugin:        node.Plugin,
+		Server:        string(server),
+		Name:          tag,
+		Port:          port,
+		Cipher:        string(cipher),
+		Password:      string(password),
+		Plugin:        plugin,
 		PluginOptions: PluginOptions,
 	}
+	SS2Node(&node)
 
 	return node, nil
+}
+
+//Node2SS adds SS field to Node strcut
+func Node2SS(node *data.Node) {
+	node.SS = data.SS{
+		Server:   node.Server,
+		Name:     node.Name,
+		Port:     node.Port,
+		Cipher:   node.Cipher,
+		Password: node.Password,
+	}
+	if node.Plugin == "obfs" {
+		node.SS.Plugin = "simple-obfs"
+		node.SS.PluginOptions = "obfs=" + node.PluginOpts.Obfs +
+			";obfs-host=" + node.PluginOpts.ObfsHost
+	}
+}
+
+//SS2Node constructs Node struct with SS
+func SS2Node(node *data.Node) {
+	*node = data.Node{
+		Type:     "ss",
+		Cipher:   node.SS.Cipher,
+		Password: node.SS.Password,
+		Name:     node.SS.Name,
+		Server:   node.SS.Server,
+		Port:     node.SS.Port,
+		SS:       node.SS,
+	}
+	if node.SS.Plugin == "simple-obfs" {
+		node.Plugin = "obfs"
+		pluginOptions := strings.Split(node.SS.PluginOptions, ";")
+		for _, val := range pluginOptions {
+			option := strings.Split(val, "=")
+			if option[0] == "obfs" {
+				node.PluginOpts.Obfs = option[1]
+			} else if option[0] == "obfs-host" {
+				node.PluginOpts.ObfsHost = option[1]
+			}
+		}
+	}
 }

@@ -27,7 +27,7 @@ func AddGroup(group data.Group) error {
 			zap.Error(err))
 	}
 	logger.Logger.Info("Group write to file success.")
-	go updateGroup(group.Name)
+	go UpdateGroup(group.Name)
 	// if err != nil {
 	// 	return err
 	// }
@@ -44,7 +44,23 @@ func groupDuplicate(group data.Group) error {
 	return nil
 }
 
-func updateGroup(name string) error {
+//UpdateAllGroups updates all groups
+func UpdateAllGroups() error {
+	errorMsg := ""
+	for _, group := range config.Groups {
+		err := UpdateGroup(group.Name)
+		if err != nil {
+			errorMsg += err.Error() + "\n"
+		}
+	}
+	if len(errorMsg) > 0 {
+		return errors.New(errorMsg)
+	}
+	return nil
+}
+
+//UpdateGroup updates group specified by group name
+func UpdateGroup(name string) error {
 	loadConfig()
 	index := -1
 	for i, val := range config.Groups {
@@ -57,22 +73,30 @@ func updateGroup(name string) error {
 		logger.Logger.Warn("No such group")
 		return errors.New("No such group")
 	}
-	resp, err := client.Get(config.Groups[index].URL)
-	if err != nil {
-		logger.Logger.Warn("HTTP request for "+config.Groups[index].URL+" fail",
-			zap.Error(err))
-		return err
+	var nodes []data.Node
+	if len(config.Groups[index].URL) > 0 {
+		resp, err := client.Get(config.Groups[index].URL)
+		if err != nil {
+			logger.Logger.Warn("HTTP request for "+config.Groups[index].URL+" fail",
+				zap.Error(err))
+			return err
+		}
+		defer resp.Body.Close()
+		s, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			logger.Logger.Warn("Read from resp fail",
+				zap.Error(err))
+			return err
+		}
+		nodes, err = decode(s)
+		if err != nil {
+			return err
+		}
+	} else {
+		nodes = config.Groups[index].Nodes
 	}
-	defer resp.Body.Close()
-	s, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logger.Logger.Warn("Read from resp fail",
-			zap.Error(err))
-		return err
-	}
-	nodes, err := decode(s)
-	if err != nil {
-		return err
+	for i := range nodes {
+		AddEmoji(&nodes[i])
 	}
 	config.Groups[index].Nodes = nodes
 	config.Groups[index].LastUpdate = time.Now()

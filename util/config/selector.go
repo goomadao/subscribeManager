@@ -24,7 +24,7 @@ func AddSelector(selector data.ClashProxyGroupSelector) error {
 			zap.Error(err))
 	}
 	logger.Logger.Info("Selector write to file success")
-	go updateSelectorProxies(selector.Name, selector.Type)
+	go UpdateSelectorProxies(selector.Name, selector.Type)
 	return nil
 }
 
@@ -38,7 +38,23 @@ func selectorDuplicate(selector data.ClashProxyGroupSelector) error {
 	return nil
 }
 
-func updateSelectorProxies(name string, selectType string) error {
+//UpdateAllSelectorProxies updates all selectors' proxies
+func UpdateAllSelectorProxies() error {
+	errorMsg := ""
+	for _, selector := range config.Selectors {
+		err := UpdateSelectorProxies(selector.Name, selector.Type)
+		if err != nil {
+			errorMsg += err.Error() + "\n"
+		}
+	}
+	if len(errorMsg) > 0 {
+		return errors.New(errorMsg)
+	}
+	return nil
+}
+
+//UpdateSelectorProxies updates selector's proxies specified by selector name and type
+func UpdateSelectorProxies(name string, selectType string) error {
 	loadConfig()
 	index := -1
 	for i, val := range config.Selectors {
@@ -51,6 +67,7 @@ func updateSelectorProxies(name string, selectType string) error {
 		logger.Logger.Warn("No such selector")
 		return errors.New("No such selector")
 	}
+	var proxies []data.Node
 	for _, group := range config.Groups {
 		haveMatch := false
 		for _, selector := range config.Selectors[index].ProxySelector {
@@ -63,7 +80,7 @@ func updateSelectorProxies(name string, selectType string) error {
 						continue
 					}
 					if match {
-						config.Selectors[index].Proxies = append(config.Selectors[index].Proxies, node)
+						proxies = append(proxies, node)
 					}
 				}
 				haveMatch = true
@@ -72,10 +89,11 @@ func updateSelectorProxies(name string, selectType string) error {
 		}
 		if !haveMatch {
 			// for _, node := range group.Nodes {
-			// 	config.Selectors[index].Proxies = append(config.Selectors[index].Proxies, node)
+			// 	proxies = append(proxies, node)
 			// }
 		}
 	}
+	config.Selectors[index].Proxies = proxies
 	writeToFile()
 	logger.Logger.Info("Update selector proxies success")
 	return nil

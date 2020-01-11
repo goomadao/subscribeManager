@@ -23,35 +23,9 @@ func decodeClash(bts []byte) (nodes []data.Node, err error) {
 
 func translateNode(node *data.Node) {
 	if node.Type == "ss" {
-		node.SS = data.SS{
-			Server:   node.Server,
-			Name:     node.Name,
-			Port:     node.Port,
-			Cipher:   node.Cipher,
-			Password: node.Password,
-			Plugin:   node.Plugin,
-			PluginOptions: "obfs=" +
-				node.PluginOpts.Obfs +
-				";obfs-host=" +
-				node.PluginOpts.ObfsHost,
-		}
+		Node2SS(node)
 	} else if node.Type == "vmess" {
-		node.Vmess = data.Vmess{
-			Host:    node.WSHeaders.Host,
-			Path:    node.WSPath,
-			Server:  node.Server,
-			Port:    node.Port,
-			AlterID: node.AlterID,
-			Network: node.Network,
-			Type:    "none",
-			V:       "2",
-			Name:    node.Name,
-			UUID:    node.UUID,
-			Class:   1,
-		}
-		if node.TLS {
-			node.Vmess.TLS = "tls"
-		}
+		Node2Vmess(node)
 	}
 }
 
@@ -74,7 +48,7 @@ func GenerateClashConfig() []byte {
 		}
 	}
 	for _, selector := range config.Selectors {
-		updateSelectorProxies(selector.Name, selector.Type)
+		UpdateSelectorProxies(selector.Name, selector.Type)
 		var proxies []string
 		for _, val := range selector.Proxies {
 			if clashSupport(val) {
@@ -90,14 +64,12 @@ func GenerateClashConfig() []byte {
 		})
 	}
 	for _, rule := range config.Rules {
-		// content := rule.Content
-		// rules := strings.Split(content, "\n")
-		// for _, val := range rules {
-		// 	if len(val) > 0 && strings.Index(val, "#") != 0 {
-		// 		clash.Rule = append(clash.Rule, val)
-		// 	}
-		// }
 		clash.Rule = append(clash.Rule, rule.Rules...)
+		for _, val := range rule.CustomRules {
+			if res, err := addProxyGroupNameAfterRule(val, rule.Name); err == nil {
+				clash.Rule = append(clash.Rule, res)
+			}
+		}
 	}
 	clashFile, err := yaml.Marshal(clash)
 	if err != nil {
@@ -110,6 +82,9 @@ func GenerateClashConfig() []byte {
 
 func clashSupport(node data.Node) bool {
 	if node.Cipher == "chacha20" {
+		return false
+	}
+	if len(node.Network) > 0 && node.Network != "ws" {
 		return false
 	}
 	if node.Type == "ss" || node.Type == "vmess" {

@@ -110,6 +110,13 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 		ObfsParam:     string(obfsParam),
 		Group:         string(group),
 	}
+	Node2SSR(&node)
+
+	return node, nil
+}
+
+//Node2SSR adds SSR field to Node strcut
+func Node2SSR(node *data.Node) {
 	node.SSR = data.SSR{
 		Server:        node.Server,
 		Port:          node.Port,
@@ -122,6 +129,22 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 		ObfsParam:     node.ObfsParam,
 		Group:         node.Group,
 	}
+}
 
-	return node, nil
+//SSR2Node constructs Node struct with SSR
+func SSR2Node(node *data.Node) {
+	*node = data.Node{
+		Type:          "ssr",
+		Cipher:        node.SSR.Cipher,
+		Password:      node.SSR.Password,
+		Name:          node.SSR.Name,
+		Server:        node.SSR.Server,
+		Port:          node.SSR.Port,
+		Protocol:      node.SSR.Protocol,
+		ProtocolParam: node.SSR.ProtocolParam,
+		Obfs:          node.SSR.Obfs,
+		ObfsParam:     node.SSR.ObfsParam,
+		Group:         node.SSR.Group,
+		SSR:           node.SSR,
+	}
 }

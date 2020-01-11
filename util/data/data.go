@@ -124,8 +124,8 @@ type Clash struct {
 
 //Group - a group of ss, ssr or v2ray
 type Group struct {
-	Name       string    `yaml:"name"`
-	URL        string    `yaml:"url"`
+	Name       string    `yaml:"name" json:"name"`
+	URL        string    `yaml:"url" json:"url"`
 	Nodes      []Node    `yaml:"nodes"`
 	LastUpdate time.Time `yaml:"lastUpdate"`
 }
@@ -149,10 +149,17 @@ type ClashProxyGroupSelector struct {
 
 //Rule - rules
 type Rule struct {
-	Name       string    `yaml:"name"`
-	URL        string    `yaml:"url"`
-	Rules      []string  `yaml:"rules"`
-	LastUpdate time.Time `yaml:"lastUpdate"`
+	Name        string    `yaml:"name"`
+	URLs        []string  `yaml:"urls"`
+	CustomRules []string  `yaml:"customRules"`
+	Rules       []string  `yaml:"rules"`
+	LastUpdate  time.Time `yaml:"lastUpdate"`
+}
+
+//NameChanger - change name, such as adding emojis
+type NameChanger struct {
+	Emoji string `yaml:"emoji"`
+	Regex string `yaml:"regex"`
 }
 
 //Config - config file for subscribe manager
@@ -160,4 +167,5 @@ type Config struct {
 	Groups    []Group                   `yaml:"groups"`
 	Selectors []ClashProxyGroupSelector `yaml:"selectors"`
 	Rules     []Rule                    `yaml:"rules"`
+	Changers  []NameChanger             `yaml:"changers"`
 }

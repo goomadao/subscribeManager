@@ -16,6 +16,7 @@ func AddNode(node data.Node) error {
 	if err != nil {
 		return err
 	}
+	AddEmoji(&node)
 	config.Groups[0].Nodes = append(config.Groups[0].Nodes, node)
 	config.Groups[0].LastUpdate = time.Now()
 	err = writeToFile()

@@ -69,31 +69,7 @@ func loadConfig() {
 	cfgMutex.RUnlock()
 	if err != nil {
 		if os.IsNotExist(err) {
-			// node1 := &data.Node{
-			// 	Type:     "ss",
-			// 	Cipher:   "aes-256-cfb",
-			// 	Password: "123456m",
-			// 	Name:     "whatever",
-			// 	Server:   "127.0.0.1",
-			// 	Port:     1024,
-			// }
-			// node2 := &data.Node{
-			// 	Type:     "ss",
-			// 	Cipher:   "aes-256-cfb",
-			// 	Password: "123456m",
-			// 	Name:     "whatever2",
-			// 	Server:   "127.0.0.1",
-			// 	Port:     10242,
-			// }
-			// group := data.Group{
-			// 	Name: "Default",
-			// 	URL:  "",
-			// 	// Nodes: []*data.Node{},
-			// 	// LastUpdate: time.Now(),
-			// }
-			config = &data.Config{
-				// Groups: []data.Group{group},
-			}
+			config = &data.Config{}
 			err = writeToFile()
 			if err != nil {
 				logger.Logger.Panic(err.Error())
@@ -116,17 +92,7 @@ func loadConfig() {
 
 //UpdateAll updates group, selector and rule
 func UpdateAll() {
-	for _, group := range config.Groups {
-		if len(group.URL) > 0 {
-			updateGroup(group.Name)
-		}
-	}
-	for _, selector := range config.Selectors {
-		updateSelectorProxies(selector.Name, selector.Type)
-	}
-	for _, rule := range config.Rules {
-		if len(rule.URL) > 0 {
-			updateRule(rule.URL)
-		}
-	}
+	UpdateAllGroups()
+	UpdateAllSelectorProxies()
+	UpdateAllRules()
 }

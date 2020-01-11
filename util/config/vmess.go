@@ -37,26 +37,52 @@ func decodeVmessLink(bts []byte) (node data.Node, err error) {
 			zap.Error(err))
 		return data.Node{}, err
 	}
-	node = data.Node{
+	node = data.Node{Vmess: vmessStruct}
+	Vmess2Node(&node)
+
+	return node, nil
+}
+
+//Node2Vmess adds Vmess field to Node strcut
+func Node2Vmess(node *data.Node) {
+	node.Vmess = data.Vmess{
+		Host:    node.WSHeaders.Host,
+		Path:    node.WSPath,
+		Server:  node.Server,
+		Port:    node.Port,
+		AlterID: node.AlterID,
+		Network: node.Network,
+		Type:    "none",
+		V:       "2",
+		Name:    node.Name,
+		UUID:    node.UUID,
+		Class:   1,
+	}
+	if node.TLS {
+		node.Vmess.TLS = "tls"
+	}
+}
+
+//Vmess2Node constructs Node struct with Vmess
+func Vmess2Node(node *data.Node) {
+	*node = data.Node{
 		Type:     "vmess",
 		Cipher:   "auto",
 		Password: "",
-		Name:     vmessStruct.Name,
-		Server:   vmessStruct.Server,
-		Port:     vmessStruct.Port,
-		UUID:     vmessStruct.UUID,
-		AlterID:  vmessStruct.AlterID,
+		Name:     node.Vmess.Name,
+		Server:   node.Vmess.Server,
+		Port:     node.Vmess.Port,
+		UUID:     node.Vmess.UUID,
+		AlterID:  node.Vmess.AlterID,
 		TLS:      false,
-		Network:  vmessStruct.Network,
-		WSPath:   vmessStruct.Path,
+		Network:  node.Vmess.Network,
+		WSPath:   node.Vmess.Path,
 		WSHeaders: data.WSHeaders{
-			Host: vmessStruct.Host,
+			Host: node.Vmess.Host,
 		},
-		Vmess: vmessStruct,
+		Vmess: node.Vmess,
 	}
-	if vmessStruct.TLS == "tls" {
+	if node.Vmess.TLS == "tls" {
 		node.TLS = true
 	}
-
-	return node, nil
 }
