@@ -1,29 +1,21 @@
 package config
 
-import "github.com/goomadao/subscribeManager/util/data"
+import (
+	"errors"
+	"regexp"
 
-import "github.com/goomadao/subscribeManager/util/logger"
-
-import "errors"
-
-import "go.uber.org/zap"
-
-import "regexp"
+	"github.com/goomadao/subscribeManager/util/data"
+	"github.com/goomadao/subscribeManager/util/logger"
+	"go.uber.org/zap"
+)
 
 //AddSelector adds new selector
 func AddSelector(selector data.ClashProxyGroupSelector) error {
-	loadConfig()
 	err := selectorDuplicate(selector)
 	if err != nil {
 		return err
 	}
 	config.Selectors = append(config.Selectors, selector)
-	err = writeToFile()
-	if err != nil {
-		logger.Logger.Panic("Selector write to file fail",
-			zap.Error(err))
-	}
-	logger.Logger.Info("Selector write to file success")
 	go UpdateSelectorProxies(selector.Name, selector.Type)
 	return nil
 }
@@ -55,7 +47,6 @@ func UpdateAllSelectorProxies() error {
 
 //UpdateSelectorProxies updates selector's proxies specified by selector name and type
 func UpdateSelectorProxies(name string, selectType string) error {
-	loadConfig()
 	index := -1
 	for i, val := range config.Selectors {
 		if val.Name == name && val.Type == selectType {
@@ -73,7 +64,7 @@ func UpdateSelectorProxies(name string, selectType string) error {
 		for _, selector := range config.Selectors[index].ProxySelector {
 			if group.Name == selector.GroupName {
 				for _, node := range group.Nodes {
-					match, err := regexp.MatchString(selector.Regex, node.Name)
+					match, err := regexp.MatchString(selector.Regex, node.GetName())
 					if err != nil {
 						logger.Logger.Warn("Regex error",
 							zap.Error(err))
@@ -94,7 +85,5 @@ func UpdateSelectorProxies(name string, selectType string) error {
 		}
 	}
 	config.Selectors[index].Proxies = proxies
-	writeToFile()
-	logger.Logger.Info("Update selector proxies success")
 	return nil
 }

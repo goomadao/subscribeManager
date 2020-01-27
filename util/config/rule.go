@@ -14,18 +14,11 @@ import (
 
 //AddRule adds new rule
 func AddRule(rule data.Rule) error {
-	loadConfig()
 	err := ruleDuplicate(rule)
 	if err != nil {
 		return err
 	}
 	config.Rules = append(config.Rules, rule)
-	err = writeToFile()
-	if err != nil {
-		logger.Logger.Panic("Rule write to file fail",
-			zap.Error(err))
-	}
-	logger.Logger.Info("Rule write to file success")
 	go UpdateRule(rule.Name)
 	return nil
 }
@@ -59,7 +52,6 @@ func UpdateAllRules() error {
 
 //UpdateRule updates rule specified by rule name
 func UpdateRule(name string) error {
-	loadConfig()
 	index := -1
 	for i, val := range config.Rules {
 		if val.Name == name {
@@ -95,8 +87,6 @@ func UpdateRule(name string) error {
 	}
 	config.Rules[index].Rules = tempRules
 	config.Rules[index].LastUpdate = time.Now()
-	writeToFile()
-	logger.Logger.Info("Update rule success")
 	return nil
 }
 

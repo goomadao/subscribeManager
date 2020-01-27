@@ -19,70 +19,67 @@ func decodeVmess(bts []byte) (nodes []data.Node, err error) {
 		if err != nil {
 
 		} else {
-			nodes = append(nodes, node)
+			nodes = append(nodes, &node)
 		}
 	}
 	return nodes, nil
 }
 
-func decodeVmessLink(bts []byte) (node data.Node, err error) {
+func decodeVmessLink(bts []byte) (node data.Vmess, err error) {
 	vmess, err := base64.StdEncoding.DecodeString(string(bts))
 	if err != nil {
 		logger.Logger.Warn("Decode vmess link fail", zap.Error(err))
-		return data.Node{}, err
+		return data.Vmess{}, err
 	}
 	var vmessStruct data.Vmess
 	if err := jsonIterator.Unmarshal(vmess, &vmessStruct); err != nil {
 		logger.Logger.Warn("Turn vmess json to struct fail",
 			zap.Error(err))
-		return data.Node{}, err
+		return data.Vmess{}, err
 	}
-	node = data.Node{Vmess: vmessStruct}
+	node = vmessStruct
 	Vmess2Node(&node)
 
 	return node, nil
 }
 
 //Node2Vmess adds Vmess field to Node strcut
-func Node2Vmess(node *data.Node) {
+func Node2Vmess(node *data.RawNode) {
 	node.Vmess = data.Vmess{
-		Host:    node.WSHeaders.Host,
-		Path:    node.WSPath,
-		Server:  node.Server,
-		Port:    node.Port,
-		AlterID: node.AlterID,
-		Network: node.Network,
-		Type:    "none",
-		V:       "2",
-		Name:    node.Name,
-		UUID:    node.UUID,
-		Class:   1,
+		ClashType:    "vmess",
+		WSHeaders:    node.WSHeaders,
+		ClashTLS:     node.TLS,
+		ClashNetwork: node.Network,
+		Cipher:       node.Cipher,
+		Host:         node.WSHeaders.Host,
+		Path:         node.WSPath,
+		Server:       node.Server,
+		Port:         node.Port,
+		AlterID:      node.AlterID,
+		Network:      node.Network,
+		Type:         "none",
+		V:            "2",
+		Name:         node.Name,
+		UUID:         node.UUID,
+		Class:        1,
 	}
 	if node.TLS {
 		node.Vmess.TLS = "tls"
 	}
+	if len(node.Network) == 0 {
+		node.Vmess.Network = "tcp"
+	}
 }
 
 //Vmess2Node constructs Node struct with Vmess
-func Vmess2Node(node *data.Node) {
-	*node = data.Node{
-		Type:     "vmess",
-		Cipher:   "auto",
-		Password: "",
-		Name:     node.Vmess.Name,
-		Server:   node.Vmess.Server,
-		Port:     node.Vmess.Port,
-		UUID:     node.Vmess.UUID,
-		AlterID:  node.Vmess.AlterID,
-		TLS:      false,
-		Network:  node.Vmess.Network,
-		WSPath:   node.Vmess.Path,
-		WSHeaders: data.WSHeaders{
-			Host: node.Vmess.Host,
-		},
-		Vmess: node.Vmess,
+func Vmess2Node(node *data.Vmess) {
+	node.ClashType = "vmess"
+	node.WSHeaders.Host = node.Host
+	if node.TLS == "tls" {
+		node.ClashTLS = true
 	}
-	if node.Vmess.TLS == "tls" {
-		node.TLS = true
+	if node.Network == "ws" {
+		node.ClashNetwork = "ws"
 	}
+	node.Cipher = "auto"
 }

@@ -10,19 +10,22 @@ import (
 
 func addNode(c *gin.Context) {
 	types := c.Query("type")
-	var node data.Node
+	var node data.RawNode
+	var err error
 	switch types {
 	case "ss":
 		c.BindJSON(node.SS)
-		config.SS2Node(&node)
+		config.SS2Node(&node.SS)
+		err = config.AddNode(&node.SS)
 	case "ssr":
 		c.BindJSON(node.SSR)
-		config.SSR2Node(&node)
+		// config.SSR2Node(&node.SSR)
+		err = config.AddNode(&node.SSR)
 	case "vmess":
 		c.BindJSON(node.Vmess)
-		config.Vmess2Node(&node)
+		config.Vmess2Node(&node.Vmess)
+		err = config.AddNode(&node.Vmess)
 	}
-	err := config.AddNode(node)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "fail",

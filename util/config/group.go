@@ -15,18 +15,11 @@ import (
 
 //AddGroup adds new group
 func AddGroup(group data.Group) error {
-	loadConfig()
 	err := groupDuplicate(group)
 	if err != nil {
 		return err
 	}
 	config.Groups = append(config.Groups, group)
-	err = writeToFile()
-	if err != nil {
-		logger.Logger.Panic("Group write to file fail",
-			zap.Error(err))
-	}
-	logger.Logger.Info("Group write to file success.")
 	go UpdateGroup(group.Name)
 	// if err != nil {
 	// 	return err
@@ -61,7 +54,6 @@ func UpdateAllGroups() error {
 
 //UpdateGroup updates group specified by group name
 func UpdateGroup(name string) error {
-	loadConfig()
 	index := -1
 	for i, val := range config.Groups {
 		if val.Name == name {
@@ -96,12 +88,10 @@ func UpdateGroup(name string) error {
 		nodes = config.Groups[index].Nodes
 	}
 	for i := range nodes {
-		AddEmoji(&nodes[i])
+		AddEmoji(nodes[i])
 	}
 	config.Groups[index].Nodes = nodes
 	config.Groups[index].LastUpdate = time.Now()
-	writeToFile()
-	logger.Logger.Info("Update group success")
 	return nil
 }
 
@@ -125,8 +115,6 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 			// }
 			return nodes, nil
 		} else if strings.Index(string(decodeBytes), "ss") == 0 {
-			// fmt.Println("ss")
-			// fmt.Println(string(decodeBytes))
 			nodes, _ = decodeSS(decodeBytes)
 			// if err != nil {
 			// 	return nil, err
@@ -140,5 +128,4 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 		return nodes, nil
 	}
 	return nil, nil
-	// return nil, err
 }

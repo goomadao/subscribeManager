@@ -1,53 +1,14 @@
 package config
 
 import (
-	"errors"
 	"github.com/goomadao/subscribeManager/util/data"
 	"github.com/goomadao/subscribeManager/util/logger"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
-func decodeClash(bts []byte) (nodes []data.Node, err error) {
-	clash := data.RawClash{}
-	err = yaml.Unmarshal(bts, &clash)
-	if err != nil {
-		logger.Logger.Warn("Decode clash config file fail",
-			zap.Error(err))
-		return nil, err
-	}
-	nodes = decodeClashProxies(clash.Proxy)
-	return nodes, nil
-}
-
-func decodeClashProxies(proxies []data.RawNode) (nodes []data.Node) {
-	for _, proxy := range proxies {
-		node, err := decodeClashProxy(proxy)
-		if err != nil {
-			continue
-		}
-		nodes = append(nodes, node)
-	}
-	return nodes
-}
-
-func decodeClashProxy(proxy data.RawNode) (data.Node, error) {
-	if proxy.Type == "ss" {
-		Node2SS(&proxy)
-		return &proxy.SS, nil
-	} else if proxy.Type == "vmess" {
-		Node2Vmess(&proxy)
-		return &proxy.Vmess, nil
-	} else if proxy.Type == "ssr" {
-		Node2SSR(&proxy)
-		return &proxy.SSR, nil
-	}
-	logger.Logger.Warn("Unsupported type")
-	return nil, errors.New("Unsupported type")
-}
-
-//GenerateClashConfig generates clash config file
-func GenerateClashConfig() []byte {
+//GenerateClashRConfig generates clash config file
+func GenerateClashRConfig() []byte {
 	clash := data.Clash{
 		Port:               7890,
 		SocksPort:          7891,
@@ -61,7 +22,7 @@ func GenerateClashConfig() []byte {
 	for idx := range config.Groups {
 		group := config.Groups[idx]
 		for _, node := range group.Nodes {
-			if node.ClashSupport() {
+			if node.ClashRSupport() {
 				originalName := node.GetName()
 				for true {
 					if _, ok := proxies[node.GetName()]; !ok {
@@ -82,7 +43,7 @@ func GenerateClashConfig() []byte {
 		UpdateSelectorProxies(selector.Name, selector.Type)
 		var proxies []string
 		for _, val := range selector.Proxies {
-			if val.ClashSupport() {
+			if val.ClashRSupport() {
 				proxies = append(proxies, val.GetName())
 			}
 		}

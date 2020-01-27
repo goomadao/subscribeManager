@@ -22,25 +22,27 @@ func decodeSSD(bts []byte) (nodes []data.Node, err error) {
 			zap.Error(err))
 		return nil, err
 	}
-	for _, ss := range ssdStruct.Servers {
-		node := data.Node{
-			SS: ss,
+	for idx := range ssdStruct.Servers {
+		ss := ssdStruct.Servers[idx]
+		ss.Type = "ss"
+		if ss.Port == 0 {
+			ss.Port = ssdStruct.Port
 		}
-		if node.SS.Port == 0 {
-			node.SS.Port = ssdStruct.Port
+		if len(ss.Cipher) == 0 {
+			ss.Cipher = ssdStruct.Cipher
 		}
-		if len(node.SS.Cipher) == 0 {
-			node.SS.Cipher = ssdStruct.Cipher
+		if len(ss.Password) == 0 {
+			ss.Password = ssdStruct.Password
 		}
-		if len(node.SS.Password) == 0 {
-			node.SS.Password = ssdStruct.Password
+		if len(ss.Plugin) == 0 {
+			ss.Plugin = ssdStruct.Plugin
+			ss.PluginOptions = ssdStruct.PluginOptions
 		}
-		if len(node.SS.Plugin) == 0 {
-			node.SS.Plugin = ssdStruct.Plugin
-			node.SS.PluginOptions = ssdStruct.PluginOptions
+		if ss.Plugin == "simple-obfs" {
+			ss.Plugin = "obfs"
 		}
-		SS2Node(&node)
-		nodes = append(nodes, node)
+		SS2Node(&ss)
+		nodes = append(nodes, &ss)
 	}
 	return nodes, nil
 }

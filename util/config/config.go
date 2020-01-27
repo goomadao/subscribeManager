@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	config *data.Config
 	//CfgFile - location of config file
 	CfgFile      string
+	config       *data.Config
 	cfgMutex     *sync.RWMutex
 	client       *http.Client
 	jsonIterator jsoniter.API
@@ -29,7 +29,7 @@ var (
 //InitConfig init rwMutex
 func InitConfig() {
 	cfgMutex = new(sync.RWMutex)
-	loadConfig()
+	LoadConfig()
 
 	proxy, _ := url.Parse("http://127.0.0.1:7890")
 	tr := &http.Transport{
@@ -43,11 +43,8 @@ func InitConfig() {
 	jsonIterator = jsoniter.ConfigCompatibleWithStandardLibrary
 }
 
-func writeToFile() error {
-	// if len(config.Groups) == 1 {
-	// 	return nil
-	// }
-	// bts, err := yaml.Marshal(config.Groups[1])
+//WriteToFile writes config to file
+func WriteToFile() error {
 	bts, err := yaml.Marshal(config)
 	if err != nil {
 		logger.Logger.Warn(err.Error())
@@ -63,29 +60,54 @@ func writeToFile() error {
 	return nil
 }
 
-func loadConfig() {
+//LoadConfig loads config from file
+func LoadConfig() {
 	cfgMutex.RLock()
 	buffer, err := ioutil.ReadFile(CfgFile)
 	cfgMutex.RUnlock()
 	if err != nil {
 		if os.IsNotExist(err) {
 			config = &data.Config{}
-			err = writeToFile()
-			if err != nil {
-				logger.Logger.Panic(err.Error())
-			}
-			logger.Logger.Info("Write to file success")
 			return
 		}
 		logger.Logger.Panic("Read config file fail.",
 			zap.Error(err))
 		return
 	}
-	config = &data.Config{}
-	err = yaml.Unmarshal(buffer, config)
+	rawConfig := &data.RawConfig{}
+	err = yaml.Unmarshal(buffer, rawConfig)
 	if err != nil {
 		logger.Logger.Panic("Unmarshal cnofig file fail.",
 			zap.Error(err))
+	}
+	var groups []data.Group
+	for _, rawGroup := range rawConfig.Groups {
+		group := data.Group{
+			Name:       rawGroup.Name,
+			URL:        rawGroup.URL,
+			Nodes:      decodeClashProxies(rawGroup.Nodes),
+			LastUpdate: rawGroup.LastUpdate,
+		}
+		groups = append(groups, group)
+	}
+	var selectors []data.ClashProxyGroupSelector
+	for _, rawSelector := range rawConfig.Selectors {
+		selector := data.ClashProxyGroupSelector{
+			Name:          rawSelector.Name,
+			Type:          rawSelector.Type,
+			URL:           rawSelector.URL,
+			Interval:      rawSelector.Interval,
+			ProxyGroups:   rawSelector.ProxyGroups,
+			ProxySelector: rawSelector.ProxySelector,
+			Proxies:       decodeClashProxies(rawSelector.Proxies),
+		}
+		selectors = append(selectors, selector)
+	}
+	config = &data.Config{
+		Groups:    groups,
+		Selectors: selectors,
+		Rules:     rawConfig.Rules,
+		Changers:  rawConfig.Changers,
 	}
 	logger.Logger.Info("Unmarshal from config file success.")
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/goomadao/subscribeManager/util/config"
+	"github.com/goomadao/subscribeManager/util/logger"
 )
 
 var router *gin.Engine
@@ -19,6 +20,7 @@ func InitGin(port int) {
 }
 
 func add(c *gin.Context) {
+	config.LoadConfig()
 	class := c.Query("class")
 	switch class {
 	case "group":
@@ -30,9 +32,15 @@ func add(c *gin.Context) {
 	case "selector":
 		addSelector(c)
 	}
+	err := config.WriteToFile()
+	if err != nil {
+		logger.Logger.Panic(err.Error())
+	}
+	logger.Logger.Info("Write to file success")
 }
 
 func update(c *gin.Context) {
+	config.LoadConfig()
 	class := c.Query("class")
 	switch class {
 	case "all":
@@ -42,12 +50,25 @@ func update(c *gin.Context) {
 	case "rule":
 		updateRule(c)
 	}
+	err := config.WriteToFile()
+	if err != nil {
+		logger.Logger.Panic(err.Error())
+	}
+	logger.Logger.Info("Write to file success")
 }
 
 func subscribe(c *gin.Context) {
+	config.LoadConfig()
 	class := c.Query("class")
 	switch class {
 	case "clash":
 		generateClash(c)
+	case "clashr":
+		generateClashR(c)
 	}
+	err := config.WriteToFile()
+	if err != nil {
+		logger.Logger.Panic(err.Error())
+	}
+	logger.Logger.Info("Write to file success")
 }

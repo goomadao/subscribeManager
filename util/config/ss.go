@@ -23,13 +23,13 @@ func decodeSS(bts []byte) (nodes []data.Node, err error) {
 		if err != nil {
 			// return nil, err
 		} else {
-			nodes = append(nodes, node)
+			nodes = append(nodes, &node)
 		}
 	}
 	return nodes, nil
 }
 
-func decodeSSLink(bts []byte) (node data.Node, err error) {
+func decodeSSLink(bts []byte) (node data.SS, err error) {
 	var cipher, password, server, cipherAndPasswordBytes, serverAndPortBytes []byte
 	var port int
 	if (bytes.IndexByte(bts, ':')) == -1 { //server and port in base64
@@ -41,7 +41,7 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		if err != nil {
 			logger.Logger.Warn("Decode ss cipher, password, server and port fail.",
 				zap.Error(err))
-			return data.Node{}, err
+			return data.SS{}, err
 		}
 		all := bytes.Split(allBytes, []byte("@"))
 		//get cipher and password
@@ -56,7 +56,7 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		if err != nil {
 			logger.Logger.Warn("Decode ss cipher and password fail",
 				zap.Error(err))
-			return data.Node{}, errors.New("Decode ss cipher and password fail")
+			return data.SS{}, errors.New("Decode ss cipher and password fail")
 		}
 
 		pos2 := bytes.IndexAny(bts, "/?#")
@@ -86,13 +86,13 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 	if err != nil {
 		logger.Logger.Warn("Decode ss port",
 			zap.Error(err))
-		return data.Node{}, err
+		return data.SS{}, err
 	}
 
 	//get plugin
 	pos4 := bytes.Index(bts, []byte("?plugin="))
 	pos5 := bytes.IndexByte(bts, '#')
-	var plugin, pluginStr, PluginOptions string
+	var plugin, pluginStr, pluginOptions string
 	var pluginOpts data.Plugin
 	if pos4 != -1 {
 		if pos5 == -1 {
@@ -101,15 +101,15 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		pluginStr, err = url.QueryUnescape(string(bts[pos4+8 : pos5]))
 		if err != nil {
 			logger.Logger.Warn(err.Error())
-			return data.Node{}, err
+			return data.SS{}, err
 		}
 		pluginParams := strings.Split(pluginStr, ";")
-		PluginOptions = pluginStr[strings.Index(pluginStr, ";")+1:]
+		pluginOptions = pluginStr[strings.Index(pluginStr, ";")+1:]
 		for i, v := range pluginParams {
 			if i == 0 {
 				plugin = v
 				if plugin == "obfs-local" {
-					plugin = "simple-obfs"
+					plugin = "obfs"
 				}
 			} else {
 				opts := strings.Split(v, "=")
@@ -130,28 +130,19 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 		if err != nil {
 			logger.Logger.Warn("Decode ss tag fail",
 				zap.Error(err))
-			return data.Node{}, errors.New("Decode ss tag fail")
+			return data.SS{}, errors.New("Decode ss tag fail")
 		}
 	}
 
-	// node = data.Node{
-	// 	Type:       "ss",
-	// 	Cipher:     string(cipher),
-	// 	Password:   string(password),
-	// 	Name:       tag,
-	// 	Server:     string(server),
-	// 	Port:       port,
-	// 	Plugin:     plugin,
-	// 	PluginOpts: pluginOpts,
-	// }
-	node.SS = data.SS{
+	node = data.SS{
+		Type:          "ss",
 		Server:        string(server),
 		Name:          tag,
 		Port:          port,
 		Cipher:        string(cipher),
 		Password:      string(password),
 		Plugin:        plugin,
-		PluginOptions: PluginOptions,
+		PluginOptions: pluginOptions,
 	}
 	SS2Node(&node)
 
@@ -159,8 +150,9 @@ func decodeSSLink(bts []byte) (node data.Node, err error) {
 }
 
 //Node2SS adds SS field to Node strcut
-func Node2SS(node *data.Node) {
+func Node2SS(node *data.RawNode) {
 	node.SS = data.SS{
+		Type:     "ss",
 		Server:   node.Server,
 		Name:     node.Name,
 		Port:     node.Port,
@@ -168,26 +160,15 @@ func Node2SS(node *data.Node) {
 		Password: node.Password,
 	}
 	if node.Plugin == "obfs" {
-		node.SS.Plugin = "simple-obfs"
 		node.SS.PluginOptions = "obfs=" + node.PluginOpts.Obfs +
 			";obfs-host=" + node.PluginOpts.ObfsHost
 	}
 }
 
 //SS2Node constructs Node struct with SS
-func SS2Node(node *data.Node) {
-	*node = data.Node{
-		Type:     "ss",
-		Cipher:   node.SS.Cipher,
-		Password: node.SS.Password,
-		Name:     node.SS.Name,
-		Server:   node.SS.Server,
-		Port:     node.SS.Port,
-		SS:       node.SS,
-	}
-	if node.SS.Plugin == "simple-obfs" {
-		node.Plugin = "obfs"
-		pluginOptions := strings.Split(node.SS.PluginOptions, ";")
+func SS2Node(node *data.SS) {
+	if node.Plugin == "obfs" {
+		pluginOptions := strings.Split(node.PluginOptions, ";")
 		for _, val := range pluginOptions {
 			option := strings.Split(val, "=")
 			if option[0] == "obfs" {

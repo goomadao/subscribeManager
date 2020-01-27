@@ -21,17 +21,17 @@ func decodeSSR(bts []byte) (nodes []data.Node, err error) {
 		if err != nil {
 			// return nil, err
 		} else {
-			nodes = append(nodes, node)
+			nodes = append(nodes, &node)
 		}
 	}
 	return nodes, nil
 }
 
-func decodeSSRLink(bts []byte) (node data.Node, err error) {
+func decodeSSRLink(bts []byte) (node data.SSR, err error) {
 	ssr, err := base64.RawURLEncoding.DecodeString(string(bts))
 	if err != nil {
 		logger.Logger.Warn("Decode ssr link fail")
-		return data.Node{}, errors.New("Decode ssr link fail")
+		return data.SSR{}, errors.New("Decode ssr link fail")
 	}
 	pos := bytes.Index(ssr, []byte("/?"))
 	//get info before '/?'
@@ -52,7 +52,7 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 	password, err := base64.RawURLEncoding.DecodeString(string(first[numOfFields-1]))
 	if err != nil {
 		logger.Logger.Warn("Decode ssr password fail")
-		return data.Node{}, errors.New("Decode ssr password fail")
+		return data.SSR{}, errors.New("Decode ssr password fail")
 	}
 	obfs := first[numOfFields-2]
 	cipher := first[numOfFields-3]
@@ -60,7 +60,7 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 	port, err := strconv.Atoi(string(first[numOfFields-5]))
 	if err != nil {
 		logger.Logger.Warn("Decode ssr port fail")
-		return data.Node{}, errors.New("Decode ssr port fail")
+		return data.SSR{}, errors.New("Decode ssr port fail")
 	}
 	var buffer bytes.Buffer
 	buffer.Write(first[numOfFields-5])
@@ -73,31 +73,31 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 	tempURL, err := url.Parse("https://get.param" + string(ssr[pos:]))
 	if err != nil {
 		logger.Logger.Warn("Parse second ssr link to url fail")
-		return data.Node{}, errors.New("Parse second ssr link to url fail")
+		return data.SSR{}, errors.New("Parse second ssr link to url fail")
 	}
 	query := tempURL.Query()
 	name, err := base64.RawURLEncoding.DecodeString(query["remarks"][0])
 	if err != nil {
 		logger.Logger.Warn("Decode ssr name fail")
-		return data.Node{}, errors.New("Decode ssr name fail")
+		return data.SSR{}, errors.New("Decode ssr name fail")
 	}
 	protocolParam, err := base64.RawURLEncoding.DecodeString(query["protoparam"][0])
 	if err != nil {
 		logger.Logger.Warn("Decode ssr protocol param fail")
-		return data.Node{}, errors.New("Decode ssr protocol param fail")
+		return data.SSR{}, errors.New("Decode ssr protocol param fail")
 	}
 	obfsParam, err := base64.RawURLEncoding.DecodeString(query["obfsparam"][0])
 	if err != nil {
 		logger.Logger.Warn("Decode ssr obfs param fail")
-		return data.Node{}, errors.New("Decode ssr obfs param fail")
+		return data.SSR{}, errors.New("Decode ssr obfs param fail")
 	}
 	group, err := base64.RawURLEncoding.DecodeString(query["group"][0])
 	if err != nil {
 		logger.Logger.Warn("Decode ssr group fail")
-		return data.Node{}, errors.New("Decode ssr group fail")
+		return data.SSR{}, errors.New("Decode ssr group fail")
 	}
 
-	node = data.Node{
+	node = data.SSR{
 		Type:          "ssr",
 		Cipher:        string(cipher),
 		Password:      string(password),
@@ -110,14 +110,14 @@ func decodeSSRLink(bts []byte) (node data.Node, err error) {
 		ObfsParam:     string(obfsParam),
 		Group:         string(group),
 	}
-	Node2SSR(&node)
 
 	return node, nil
 }
 
 //Node2SSR adds SSR field to Node strcut
-func Node2SSR(node *data.Node) {
+func Node2SSR(node *data.RawNode) {
 	node.SSR = data.SSR{
+		Type:          "ssr",
 		Server:        node.Server,
 		Port:          node.Port,
 		Cipher:        node.Cipher,
@@ -131,20 +131,20 @@ func Node2SSR(node *data.Node) {
 	}
 }
 
-//SSR2Node constructs Node struct with SSR
-func SSR2Node(node *data.Node) {
-	*node = data.Node{
-		Type:          "ssr",
-		Cipher:        node.SSR.Cipher,
-		Password:      node.SSR.Password,
-		Name:          node.SSR.Name,
-		Server:        node.SSR.Server,
-		Port:          node.SSR.Port,
-		Protocol:      node.SSR.Protocol,
-		ProtocolParam: node.SSR.ProtocolParam,
-		Obfs:          node.SSR.Obfs,
-		ObfsParam:     node.SSR.ObfsParam,
-		Group:         node.SSR.Group,
-		SSR:           node.SSR,
-	}
-}
+// //SSR2Node constructs Node struct with SSR
+// func SSR2Node(node *data.SSR) {
+// 	*node = data.SSR{
+// 		Type:          "ssr",
+// 		Cipher:        node.SSR.Cipher,
+// 		Password:      node.SSR.Password,
+// 		Name:          node.SSR.Name,
+// 		Server:        node.SSR.Server,
+// 		Port:          node.SSR.Port,
+// 		Protocol:      node.SSR.Protocol,
+// 		ProtocolParam: node.SSR.ProtocolParam,
+// 		Obfs:          node.SSR.Obfs,
+// 		ObfsParam:     node.SSR.ObfsParam,
+// 		Group:         node.SSR.Group,
+// 		SSR:           node.SSR,
+// 	}
+// }
