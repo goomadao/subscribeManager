@@ -103,7 +103,28 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 	}
 
 	//try ss/ssr/vmess
+	//RawURLEncoding
 	decodeBytes, err := base64.RawURLEncoding.DecodeString(string(bts))
+	if err == nil {
+		if strings.Index(string(decodeBytes), "vmess") == 0 {
+			nodes, _ = decodeVmess(decodeBytes)
+			return nodes, nil
+		} else if strings.Index(string(decodeBytes), "ssr") == 0 {
+			nodes, _ = decodeSSR(decodeBytes)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			return nodes, nil
+		} else if strings.Index(string(decodeBytes), "ss") == 0 {
+			nodes, _ = decodeSS(decodeBytes)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			return nodes, nil
+		}
+	}
+	//URLEncoding
+	decodeBytes, err = base64.URLEncoding.DecodeString(string(bts))
 	if err == nil {
 		if strings.Index(string(decodeBytes), "vmess") == 0 {
 			nodes, _ = decodeVmess(decodeBytes)
