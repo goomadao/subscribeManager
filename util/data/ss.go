@@ -2,7 +2,7 @@ package data
 
 //SS struct
 type SS struct {
-	Type          string `yaml:"type" json:"-"`
+	Type          string `yaml:"type" json:"nodeType"`
 	Server        string `yaml:"server" json:"server"`
 	ID            int    `yaml:"-" json:"id,omitempty"`
 	Ratio         int    `yaml:"-" json:"ratio,omitempty"`

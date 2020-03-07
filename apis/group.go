@@ -12,6 +12,36 @@ import (
 	"go.uber.org/zap"
 )
 
+func getGroups(c *gin.Context) {
+	config.LoadConfig()
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   config.GetGroups(),
+	})
+}
+
+func group(c *gin.Context) {
+	config.LoadConfig()
+	action := c.Query("action")
+	switch action {
+	case "add":
+		addGroup(c)
+	case "edit":
+		editGroup(c)
+	case "update":
+		updateGroup(c)
+	case "delete":
+		deleteGroup(c)
+	case "updateall":
+		updateAllGroups(c)
+	}
+	err := config.WriteToFile()
+	if err != nil {
+		logger.Logger.Panic(err.Error())
+	}
+	logger.Logger.Info("Write to file success")
+}
+
 func addGroup(c *gin.Context) {
 	var group data.Group
 	c.BindJSON(&group)
@@ -22,46 +52,13 @@ func addGroup(c *gin.Context) {
 				zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{
 				"status": "fail",
-				"error":  "Parse url fail",
+				"msg":    "Parse url fail",
 			})
 			return
 		}
 		group.Name = temp.Host
 	}
-	err := config.AddGroup(group)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "fail",
-			"error":  err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"msg":    "Add group success",
-	})
-}
-
-func updateGroup(c *gin.Context) {
-	types := c.Query("type")
-	if types == "all" {
-		err := config.UpdateAllGroups()
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"status": "fail",
-				"msg":    err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"status": "success",
-		})
-		return
-	}
-	var group data.Group
-	c.BindJSON(&group)
-	fmt.Println(group)
-	err := config.UpdateGroup(group.Name)
+	groups, err := config.AddGroup(group)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "fail",
@@ -71,5 +68,72 @@ func updateGroup(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
+		"data":   groups,
+	})
+}
+
+func updateGroup(c *gin.Context) {
+	var group data.Group
+	c.BindJSON(&group)
+	fmt.Println(group)
+	group, err := config.UpdateGroup(group.Name)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"msg":    err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   group,
+	})
+}
+
+func updateAllGroups(c *gin.Context) {
+	groups, err := config.UpdateAllGroups()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"data": config.GetGroups(),
+			"msg":  err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": groups,
+	})
+}
+
+func editGroup(c *gin.Context) {
+	groupName := c.Query("group")
+	var group data.Group
+	c.BindJSON(&group)
+	groups, err := config.EditGroup(groupName, group)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"msg":    err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   groups,
+	})
+}
+
+func deleteGroup(c *gin.Context) {
+	groupName := c.Query("group")
+	groups, err := config.DeleteGroup(groupName)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "fail",
+			"msg":    err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   groups,
 	})
 }

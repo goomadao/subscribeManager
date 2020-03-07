@@ -1,0 +1,155 @@
+groups:
+  - name: example
+    url: https://example.com
+  - name: self
+    nodes:
+      - type: ss
+        cipher: aes-256-cfb
+        password: password
+        name: example1
+        server: google.com
+        port: 443
+      - type: ss2
+        cipher: aes-256-cfb
+        password: password
+        name: example2
+        server: google.com
+        port: 1024
+selectors:
+  - name: 🔰 节点选择
+    type: select
+    proxyGroups:
+      - proxyGroup select
+      - proxyGroup url-test
+  - name: 📲 电报吹水
+    type: select
+    proxyGroups:
+      - 🔰 节点选择
+      - proxyGroup select
+      - proxyGroup url-test
+  - name: 📹 YouTube
+    type: select
+    proxyGroups:
+      - 🔰 节点选择
+      - proxyGroup select
+      - proxyGroup url-test
+  - name: 🎥 NETFLIX
+    type: select
+    proxyGroups:
+      - 🔰 节点选择
+      - proxyGroup select
+      - proxyGroup url-test
+  - name: 🍎 苹果服务
+    type: select
+    proxyGroups:
+      - 🔰 节点选择
+      - proxyGroup select
+      - proxyGroup url-test
+      - DIRECT
+  - name: 🚫 全球拦截
+    type: select
+    proxyGroups:
+      - REJECT
+      - DIRECT
+  - name: 🐟 漏网之鱼
+    type: select
+    proxyGroups:
+      - 🔰 节点选择
+      - proxyGroup select
+      - proxyGroup url-test
+      - DIRECT
+  - name: proxyGroup select
+    type: select
+    proxySelectors:
+      - groupname: example
+        regex: 香港|IPLC
+      - groupname: self
+        regex: Azure|AWS
+  - name: proxyGroup url-test
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 500
+    proxySelectors:
+      - groupname: example
+        regex: 香港|IPLC
+      - groupname: self
+        regex: Azure|AWS
+rules:
+  - name: 神机Hijacking
+    proxyGroup: 🚫 全球拦截
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Hijacking.list
+  - name: 神机Advertising
+    proxyGroup: 🚫 全球拦截
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Advertising.list
+  - name: 神机Youtube
+    proxyGroup: 📹 YouTube
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Media/YouTube.list
+  - name: 神机Netflix
+    proxyGroup: 🎥 NETFLIX
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Media/Netflix.list
+  - name: 神机Apple
+    proxyGroup: 🍎 苹果服务
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Apple.list
+  - name: 神机Telegram
+    proxyGroup: 📲 电报吹水
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Telegram.list
+  - name: 神机Global
+    proxyGroup: 🔰 节点选择
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/Global.list
+  - name: 神机China
+    proxyGroup: DIRECT
+    url: https://raw.githubusercontent.com/ConnersHua/Profiles/master/Surge/Ruleset/China.list
+    customRules:
+      - DOMAIN-SUFFIX,local
+      - DOMAIN-SUFFIX,localhost
+      - IP-CIDR,192.168.0.0/16
+      - IP-CIDR,10.0.0.0/8
+      - IP-CIDR,172.16.0.0/12
+      - IP-CIDR,127.0.0.0/8
+      - IP-CIDR,100.64.0.0/10
+      - IP-CIDR6,::1/128
+      - IP-CIDR6,fc00::/7
+      - IP-CIDR6,fe80::/10
+      - IP-CIDR6,fd00::/8
+      - GEOIP,CN
+  - name: 漏网之鱼
+    proxyGroup: 🐟 漏网之鱼
+    customRules:
+      - MATCH
+changers:
+  - { regex: 阿根廷, emoji: 🇦🇷 }
+  - { regex: 奥地利|维也纳, emoji: 🇦🇹 }
+  - { regex: 澳大利亚|悉尼, emoji: 🇦🇺 }
+  - { regex: 巴西|圣保罗, emoji: 🇧🇷 }
+  - { regex: 加拿大|蒙特利尔|温哥华, emoji: 🇨🇦 }
+  - { regex: 瑞士|苏黎世, emoji: 🇨🇭 }
+  - { regex: 德|法兰克福, emoji: 🇩🇪 }
+  - { regex: 芬兰|赫尔辛基, emoji: 🇫🇮 }
+  - { regex: 法国|巴黎, emoji: 🇫🇷 }
+  - { regex: 英国|伦敦, emoji: 🇬🇧 }
+  - { regex: 印尼|印度尼西亚|雅加达, emoji: 🇮🇩 }
+  - { regex: 爱尔兰|都柏林, emoji: 🇮🇪 }
+  - { regex: 印度|孟买, emoji: 🇮🇳 }
+  - { regex: 意大利|米兰, emoji: 🇮🇹 }
+  - { regex: 日|东京|大阪|埼玉|沪日, emoji: 🇯🇵 }
+  - { regex: 朝鲜, emoji: 🇰🇵 }
+  - { regex: 韩国|首尔, emoji: 🇰🇷 }
+  - { regex: 澳门, emoji: 🇲🇴 }
+  - { regex: 马来西亚, emoji: 🇲🇾 }
+  - { regex: 荷兰|阿姆斯特丹, emoji: 🇳🇱 }
+  - { regex: 菲律宾, emoji: 🇵🇭 }
+  - { regex: 罗马尼亚, emoji: 🇷🇴 }
+  - { regex: 俄罗斯|伯力|莫斯科|圣彼得堡|西伯利亚, emoji: 🇷🇺 }
+  - { regex: 新|狮城|SGP, emoji: 🇸🇬 }
+  - { regex: 泰国|曼谷, emoji: 🇹🇭 }
+  - { regex: 土耳其|伊斯坦布尔, emoji: 🇹🇷 }
+  - { regex: 台|新北|彰化, emoji: 🇨🇳 }
+  - {
+      regex: 美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|沪美,
+      emoji: 🇺🇸,
+    }
+  - { regex: 越南, emoji: 🇻🇳 }
+  - { regex: 南非, emoji: 🇿🇦 }
+  - { regex: 港|HK|Hk|hk, emoji: 🇭🇰 }
+  - { regex: 中国|江苏|北京|上海|广州|深圳|杭州|徐州|青岛|宁波|镇江, emoji: 🇨🇳 }
+  - { regex, emoji: 🌛 }

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -93,13 +94,13 @@ func LoadConfig() {
 	var selectors []data.ClashProxyGroupSelector
 	for _, rawSelector := range rawConfig.Selectors {
 		selector := data.ClashProxyGroupSelector{
-			Name:          rawSelector.Name,
-			Type:          rawSelector.Type,
-			URL:           rawSelector.URL,
-			Interval:      rawSelector.Interval,
-			ProxyGroups:   rawSelector.ProxyGroups,
-			ProxySelector: rawSelector.ProxySelector,
-			Proxies:       decodeClashProxies(rawSelector.Proxies),
+			Name:           rawSelector.Name,
+			Type:           rawSelector.Type,
+			URL:            rawSelector.URL,
+			Interval:       rawSelector.Interval,
+			ProxyGroups:    rawSelector.ProxyGroups,
+			ProxySelectors: rawSelector.ProxySelectors,
+			Proxies:        decodeClashProxies(rawSelector.Proxies),
 		}
 		selectors = append(selectors, selector)
 	}
@@ -113,8 +114,22 @@ func LoadConfig() {
 }
 
 //UpdateAll updates group, selector and rule
-func UpdateAll() {
-	UpdateAllGroups()
-	UpdateAllSelectorProxies()
-	UpdateAllRules()
+func UpdateAll() error {
+	errMsg := ""
+	_, err := UpdateAllGroups()
+	if err != nil {
+		errMsg += err.Error()
+	}
+	_, err = UpdateAllSelectorProxies()
+	if err != nil {
+		errMsg += "\n" + err.Error()
+	}
+	_, err = UpdateAllRules()
+	if err != nil {
+		errMsg += "\n" + err.Error()
+	}
+	if errMsg == "" {
+		return nil
+	}
+	return errors.New(errMsg)
 }

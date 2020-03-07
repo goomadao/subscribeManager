@@ -12,15 +12,20 @@ import (
 	"go.uber.org/zap"
 )
 
+//GetRules returns all rules
+func GetRules() []data.Rule {
+	return config.Rules
+}
+
 //AddRule adds new rule
-func AddRule(rule data.Rule) error {
+func AddRule(rule data.Rule) ([]data.Rule, error) {
 	err := ruleDuplicate(rule)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	config.Rules = append(config.Rules, rule)
 	go UpdateRule(rule.Name)
-	return nil
+	return config.Rules, nil
 }
 
 func ruleDuplicate(rule data.Rule) error {
@@ -34,60 +39,85 @@ func ruleDuplicate(rule data.Rule) error {
 }
 
 //UpdateAllRules updates all rules
-func UpdateAllRules() error {
+func UpdateAllRules() ([]data.Rule, error) {
 	errorMsg := ""
 	for _, rule := range config.Rules {
-		if len(rule.URLs) > 0 {
-			err := UpdateRule(rule.Name)
+		if len(rule.URL) > 0 {
+			_, err := UpdateRule(rule.Name)
 			if err != nil {
 				errorMsg += err.Error() + "\n"
 			}
 		}
 	}
 	if len(errorMsg) > 0 {
-		return errors.New(errorMsg)
+		return config.Rules, errors.New(errorMsg)
 	}
-	return nil
+	return config.Rules, nil
 }
 
 //UpdateRule updates rule specified by rule name
-func UpdateRule(name string) error {
-	index := -1
-	for i, val := range config.Rules {
-		if val.Name == name {
-			index = i
-			break
-		}
-	}
+func UpdateRule(name string) (data.Rule, error) {
+	index := getRuleIndex(name)
 	if index == -1 {
 		logger.Logger.Warn("No such rule")
-		return errors.New("No such rule")
+		return data.Rule{}, errors.New("No such rule")
 	}
 	var tempRules []string
-	for _, url := range config.Rules[index].URLs {
-		resp, err := client.Get(url)
-		if err != nil {
-			logger.Logger.Warn("HTTP request for "+url+" fail",
-				zap.Error(err))
-			return err
-		}
-		defer resp.Body.Close()
-		s, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			logger.Logger.Warn("Read from resp fail",
-				zap.Error(err))
-			return err
-		}
-		rules := bytes.Split(s, []byte("\n"))
-		for _, val := range rules {
-			if res, err := addProxyGroupNameAfterRule(string(val), config.Rules[index].Name); err == nil {
-				tempRules = append(tempRules, res)
-			}
+	url := config.Rules[index].URL
+	resp, err := client.Get(url)
+	if err != nil {
+		logger.Logger.Warn("HTTP request for "+url+" fail",
+			zap.Error(err))
+		return data.Rule{}, err
+	}
+	defer resp.Body.Close()
+	s, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.Logger.Warn("Read from resp fail",
+			zap.Error(err))
+		return data.Rule{}, err
+	}
+	rules := bytes.Split(s, []byte("\n"))
+	for _, val := range rules {
+		if res, err := addProxyGroupNameAfterRule(string(val), config.Rules[index].ProxyGroup); err == nil {
+			tempRules = append(tempRules, res)
 		}
 	}
+
 	config.Rules[index].Rules = tempRules
 	config.Rules[index].LastUpdate = time.Now()
-	return nil
+	return config.Rules[index], nil
+}
+
+//EditRule replaces rule
+func EditRule(ruleName string, rule data.Rule) ([]data.Rule, error) {
+	index := getRuleIndex(ruleName)
+	if index == -1 {
+		logger.Logger.Warn("No such rule")
+		return nil, errors.New("No such rule")
+	}
+	config.Rules[index] = rule
+	return config.Rules, nil
+}
+
+//DeleteRule deletes rule
+func DeleteRule(name string) ([]data.Rule, error) {
+	index := getRuleIndex(name)
+	if index == -1 {
+		logger.Logger.Warn("No such rule")
+		return nil, errors.New("No such rule")
+	}
+	config.Rules = append(config.Rules[:index], config.Rules[index+1:]...)
+	return config.Rules, nil
+}
+
+func getRuleIndex(name string) int {
+	for i, val := range config.Rules {
+		if val.Name == name {
+			return i
+		}
+	}
+	return -1
 }
 
 func addProxyGroupNameAfterRule(rule string, name string) (res string, err error) {

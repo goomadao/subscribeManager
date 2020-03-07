@@ -2,17 +2,17 @@ package data
 
 //SSR struct
 type SSR struct {
-	Type          string `yaml:"type" json:"-"`
-	Server        string `yaml:"server"`
-	Port          int    `yaml:"port"`
-	Cipher        string `yaml:"cipher"`
-	Password      string `yaml:"password"`
-	Name          string `yaml:"name"`
-	Protocol      string `yaml:"protocol"`
-	ProtocolParam string `yaml:"protocolparam"`
-	Obfs          string `yaml:"obfs"`
-	ObfsParam     string `yaml:"obfsparam"`
-	Group         string `yaml:"-"`
+	Type          string `yaml:"type" json:"nodeType"`
+	Server        string `yaml:"server" json:"server"`
+	Port          int    `yaml:"port" json:"port"`
+	Cipher        string `yaml:"cipher" json:"encryption"`
+	Password      string `yaml:"password" json:"password"`
+	Name          string `yaml:"name" json:"remarks"`
+	Protocol      string `yaml:"protocol" json:"protocol"`
+	ProtocolParam string `yaml:"protocolparam" json:"protocol_param"`
+	Obfs          string `yaml:"obfs" json:"obfs"`
+	ObfsParam     string `yaml:"obfsparam" json:"obfs_param"`
+	Group         string `yaml:"-" json:"group"`
 }
 
 //GetType returns node's type

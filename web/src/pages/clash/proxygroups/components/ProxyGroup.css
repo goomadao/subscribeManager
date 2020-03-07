@@ -1,0 +1,27 @@
+.groups {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+.summary {
+  display: flex;
+  justify-content: space-between;
+  width: 800px;
+}
+
+.nodes {
+  width: 100%;
+  min-width: 200px;
+}
+
+.groupButtons {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.selector {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  width: 100%;
+}

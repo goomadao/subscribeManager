@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+
 	"github.com/goomadao/subscribeManager/util/data"
 	"github.com/goomadao/subscribeManager/util/logger"
 	"go.uber.org/zap"
@@ -97,7 +98,7 @@ func GenerateClashConfig() []byte {
 	for _, rule := range config.Rules {
 		clash.Rule = append(clash.Rule, rule.Rules...)
 		for _, val := range rule.CustomRules {
-			if res, err := addProxyGroupNameAfterRule(val, rule.Name); err == nil {
+			if res, err := addProxyGroupNameAfterRule(val, rule.ProxyGroup); err == nil {
 				clash.Rule = append(clash.Rule, res)
 			}
 		}

@@ -58,7 +58,7 @@ func GenerateClashRConfig() []byte {
 	for _, rule := range config.Rules {
 		clash.Rule = append(clash.Rule, rule.Rules...)
 		for _, val := range rule.CustomRules {
-			if res, err := addProxyGroupNameAfterRule(val, rule.Name); err == nil {
+			if res, err := addProxyGroupNameAfterRule(val, rule.ProxyGroup); err == nil {
 				clash.Rule = append(clash.Rule, res)
 			}
 		}

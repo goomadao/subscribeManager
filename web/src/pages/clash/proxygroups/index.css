@@ -1,0 +1,15 @@
+.groups {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+
+.globalButtons {
+  /* margin-bottom: 20px; */
+  display: flex;
+  justify-content: center;
+}
+
+.globalButtons button {
+  margin: 30px;
+}

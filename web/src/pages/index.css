@@ -1,0 +1,22 @@
+.subscription {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  /* flex-wrap: wrap; */
+  /* justify-content: space-between; */
+}
+
+.card {
+  margin: 24px;
+}
+
+.content {
+  display: flex;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-left: 90px;
+}

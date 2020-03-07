@@ -8,8 +8,8 @@ import (
 type Group struct {
 	Name       string    `yaml:"name" json:"name"`
 	URL        string    `yaml:"url" json:"url"`
-	Nodes      []Node    `yaml:"nodes"`
-	LastUpdate time.Time `yaml:"lastUpdate"`
+	Nodes      []Node    `yaml:"nodes" json:"nodes"`
+	LastUpdate time.Time `yaml:"lastUpdate" json:"lastUpdate"`
 }
 
 //RawGroup - used in RawConfig with RawNode

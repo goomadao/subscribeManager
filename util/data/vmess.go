@@ -2,7 +2,7 @@ package data
 
 //Vmess link json format
 type Vmess struct {
-	ClashType    string    `yaml:"type" json:"-"`
+	ClashType    string    `yaml:"type" json:"nodeType"`
 	WSHeaders    WSHeaders `yaml:"ws-headers,omitempty" json:"-"`
 	ClashNetwork string    `yaml:"network,omitempty" json:"-"`
 	ClashTLS     bool      `yaml:"tls" json:"-"`

@@ -1,0 +1,14 @@
+.groups {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+
+.globalButtons {
+  display: flex;
+  justify-content: center;
+}
+
+.globalButtons button {
+  margin: 30px;
+}

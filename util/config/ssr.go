@@ -34,6 +34,9 @@ func decodeSSRLink(bts []byte) (node data.SSR, err error) {
 		return data.SSR{}, errors.New("Decode ssr link fail")
 	}
 	pos := bytes.Index(ssr, []byte("/?"))
+	if pos < 0 {
+		return data.SSR{}, errors.New("Empty ssr link")
+	}
 	//get info before '/?'
 	first := bytes.Split(ssr[:pos], []byte(":"))
 	// //not working for ipv6 address
