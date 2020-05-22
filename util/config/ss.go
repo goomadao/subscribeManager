@@ -110,6 +110,8 @@ func decodeSSLink(bts []byte) (node data.SS, err error) {
 				plugin = v
 				if plugin == "obfs-local" {
 					plugin = "obfs"
+				} else if plugin == "simple-obfs" {
+					plugin = "obfs"
 				}
 			} else {
 				opts := strings.Split(v, "=")
@@ -160,8 +162,10 @@ func Node2SS(node *data.RawNode) {
 		Password: node.Password,
 	}
 	if node.Plugin == "obfs" {
+		node.SS.Plugin = "obfs"
 		node.SS.PluginOptions = "obfs=" + node.PluginOpts.Obfs +
 			";obfs-host=" + node.PluginOpts.ObfsHost
+		node.SS.PluginOpts = node.PluginOpts
 	}
 }
 

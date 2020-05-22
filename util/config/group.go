@@ -169,8 +169,20 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 	}
 
 	//try ss/ssr/vmess
-	//RawURLEncoding
+	//Base64 Decode
 	decodeBytes, err := base64.RawURLEncoding.DecodeString(string(bts))
+	if err != nil {
+		logger.Logger.Debug("RawURLEncoding fail.", zap.Error(err))
+		decodeBytes, err = base64.URLEncoding.DecodeString(string(bts))
+	}
+	if err != nil {
+		logger.Logger.Debug("URLEncoding fail.", zap.Error(err))
+		decodeBytes, err = base64.RawStdEncoding.DecodeString(string(bts))
+	}
+	if err != nil {
+		logger.Logger.Debug("RawStdEncoding fail.", zap.Error(err))
+		decodeBytes, err = base64.StdEncoding.DecodeString(string(bts))
+	}
 	if err == nil {
 		if strings.Index(string(decodeBytes), "vmess") == 0 {
 			logger.Logger.Debug("Decoded: " + string(decodeBytes))
@@ -192,27 +204,7 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 			return nodes, nil
 		}
 	}
-	//URLEncoding
-	decodeBytes, err = base64.URLEncoding.DecodeString(string(bts))
-	if err == nil {
-		if strings.Index(string(decodeBytes), "vmess") == 0 {
-			nodes, _ = decodeVmess(decodeBytes)
-			return nodes, nil
-		} else if strings.Index(string(decodeBytes), "ssr") == 0 {
-			nodes, _ = decodeSSR(decodeBytes)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			return nodes, nil
-		} else if strings.Index(string(decodeBytes), "ss") == 0 {
-			nodes, _ = decodeSS(decodeBytes)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			return nodes, nil
-		}
-	}
-
+	logger.Logger.Debug("StdEncoding fail.", zap.Error(err))
 	nodes, err = decodeClash(bts)
 	if err == nil {
 		return nodes, nil

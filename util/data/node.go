@@ -1,5 +1,7 @@
 package data
 
+import "go.uber.org/zap/zapcore"
+
 //Node - ss,ssr or vmess in clash
 type Node interface {
 	GetType() string
@@ -7,6 +9,7 @@ type Node interface {
 	SetName(string)
 	ClashSupport() bool
 	ClashRSupport() bool
+	MarshalLogObject(enc zapcore.ObjectEncoder) error
 }
 
 //RawNode - used to read from config file
@@ -38,4 +41,33 @@ type RawNode struct {
 	SS    SS    `yaml:"-"`
 	SSR   SSR   `yaml:"-"`
 	Vmess Vmess `yaml:"-"`
+}
+
+//MarshalLogObject provides a method to marshal zap object
+func (n *RawNode) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("type", n.Type)
+	enc.AddString("server", n.Server)
+	enc.AddString("name", n.Name)
+	enc.AddInt("port", n.Port)
+	enc.AddString("cipher", n.Cipher)
+	enc.AddString("password", n.Password)
+	if n.Type == "ss" {
+		enc.AddString("plugin", n.Plugin)
+		enc.AddString("obfs", n.PluginOpts.Obfs)
+		enc.AddString("obfsHost", n.PluginOpts.ObfsHost)
+	} else if n.Type == "ssr" {
+		enc.AddString("protocol", n.Protocol)
+		enc.AddString("protocolParam", n.ProtocolParam)
+		enc.AddString("obfs", n.Obfs)
+		enc.AddString("obfsParam", n.ObfsParam)
+		enc.AddString("group", n.Group)
+	} else if n.Type == "vmess" {
+		enc.AddString("uuid", n.UUID)
+		enc.AddInt("alterID", n.AlterID)
+		enc.AddBool("tls", n.TLS)
+		enc.AddString("network", n.Network)
+		enc.AddString("path", n.WSPath)
+		enc.AddString("WSHeaders.Host", n.WSHeaders.Host)
+	}
+	return nil
 }

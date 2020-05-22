@@ -1,5 +1,7 @@
 package data
 
+import "go.uber.org/zap/zapcore"
+
 //SSR struct
 type SSR struct {
 	Type          string `yaml:"type" json:"nodeType"`
@@ -38,4 +40,20 @@ func (ssr SSR) ClashSupport() bool {
 //ClashRSupport determines whether the node is supported in clashr
 func (ssr SSR) ClashRSupport() bool {
 	return true
+}
+
+//MarshalLogObject provides a method to marshal zap object
+func (ssr *SSR) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("type", ssr.Type)
+	enc.AddString("server", ssr.Server)
+	enc.AddInt("port", ssr.Port)
+	enc.AddString("cipher", ssr.Cipher)
+	enc.AddString("password", ssr.Password)
+	enc.AddString("name", ssr.Name)
+	enc.AddString("protocol", ssr.Protocol)
+	enc.AddString("protocolParam", ssr.ProtocolParam)
+	enc.AddString("obfs", ssr.Obfs)
+	enc.AddString("obfsParam", ssr.ObfsParam)
+	enc.AddString("group", ssr.Group)
+	return nil
 }
