@@ -26,9 +26,9 @@ type RawNode struct {
 	PluginOpts Plugin `json:"-" yaml:"plugin-opts,omitempty"`
 	//SSR
 	Protocol      string `json:"-" yaml:"protocol,omitempty"`
-	ProtocolParam string `json:"-" yaml:"protocolparam,omitempty"`
+	ProtocolParam string `json:"-" yaml:"protocol-param,omitempty"`
 	Obfs          string `json:"-" yaml:"obfs,omitempty"`
-	ObfsParam     string `json:"-" yaml:"obfsparam,omitempty"`
+	ObfsParam     string `json:"-" yaml:"obfs-param,omitempty"`
 	Group         string `json:"-" yaml:"group,omitempty"`
 	//Vmess
 	UUID      string    `json:"-" yaml:"uuid,omitempty"`

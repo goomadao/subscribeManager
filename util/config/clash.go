@@ -17,7 +17,7 @@ func decodeClash(bts []byte) (nodes []data.Node, err error) {
 			zap.Error(err))
 		return nil, err
 	}
-	nodes = decodeClashProxies(clash.Proxy)
+	nodes = decodeClashProxies(clash.Proxies)
 	return nodes, nil
 }
 
@@ -74,7 +74,7 @@ func GenerateClashConfig() []byte {
 					originalNames[node] = originalName
 				}
 				proxies[node.GetName()] = node
-				clash.Proxy = append(clash.Proxy, node)
+				clash.Proxies = append(clash.Proxies, node)
 			}
 		}
 	}
@@ -87,7 +87,7 @@ func GenerateClashConfig() []byte {
 				proxies = append(proxies, val.GetName())
 			}
 		}
-		clash.ProxyGroup = append(clash.ProxyGroup, data.ProxyGroup{
+		clash.ProxyGroups = append(clash.ProxyGroups, data.ProxyGroups{
 			Name:     selector.Name,
 			Type:     selector.Type,
 			URL:      selector.URL,
@@ -96,10 +96,10 @@ func GenerateClashConfig() []byte {
 		})
 	}
 	for _, rule := range config.Rules {
-		clash.Rule = append(clash.Rule, rule.Rules...)
+		clash.Rules = append(clash.Rules, rule.Rules...)
 		for _, val := range rule.CustomRules {
 			if res, err := addProxyGroupNameAfterRule(val, rule.ProxyGroup); err == nil {
-				clash.Rule = append(clash.Rule, res)
+				clash.Rules = append(clash.Rules, res)
 			}
 		}
 	}

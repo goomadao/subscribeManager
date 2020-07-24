@@ -11,9 +11,9 @@ type SSR struct {
 	Password      string `yaml:"password" json:"password"`
 	Name          string `yaml:"name" json:"remarks"`
 	Protocol      string `yaml:"protocol" json:"protocol"`
-	ProtocolParam string `yaml:"protocolparam" json:"protocol_param"`
+	ProtocolParam string `yaml:"protocol-param,omitempty" json:"protocol_param"`
 	Obfs          string `yaml:"obfs" json:"obfs"`
-	ObfsParam     string `yaml:"obfsparam" json:"obfs_param"`
+	ObfsParam     string `yaml:"obfs-param,omitempty" json:"obfs_param"`
 	Group         string `yaml:"-" json:"group"`
 }
 
