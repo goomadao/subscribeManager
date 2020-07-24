@@ -74,7 +74,7 @@ const Subscription = (props: Props) => {
 export default withSnackbar(
   connect(({ loading }: { loading: { effects: { [key: string]: boolean } } }) => ({
     updating: loading.effects['subs/updateAll'],
-  }))(function(props: IndexProps) {
+  }))(function (props: IndexProps) {
     const handleUpdateAll = () => {
       const { dispatch, enqueueSnackbar } = props;
       setJustFinish(true);
@@ -112,12 +112,12 @@ export default withSnackbar(
         </div>
         <div className={styles.subscription}>
           <Subscription
-            title="ClashR"
-            api="/api/sub?class=clashr"
+            title="Clash"
+            api="/api/sub?class=clash"
             directImport={
               'clash://install-config?url=' +
               encodeURI(
-                window.location.protocol + '//' + window.location.host + '/api/sub?class=clashr',
+                window.location.protocol + '//' + window.location.host + '/api/sub?class=clash',
               )
             }
           />

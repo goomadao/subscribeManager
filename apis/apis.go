@@ -55,8 +55,6 @@ func subscribe(c *gin.Context) {
 	switch class {
 	case "clash":
 		generateClash(c)
-	case "clashr":
-		generateClashR(c)
 	}
 	err := config.WriteToFile()
 	if err != nil {

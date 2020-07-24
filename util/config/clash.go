@@ -87,6 +87,9 @@ func GenerateClashConfig() []byte {
 				proxies = append(proxies, val.GetName())
 			}
 		}
+		if len(selector.ProxyGroups) == 0 && len(proxies) == 0 {
+			proxies = []string{"DIRECT"}
+		}
 		clash.ProxyGroups = append(clash.ProxyGroups, data.ProxyGroups{
 			Name:     selector.Name,
 			Type:     selector.Type,

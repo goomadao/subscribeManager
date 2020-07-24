@@ -40,18 +40,13 @@ func (ss *SS) SetName(name string) {
 
 //ClashSupport determines whether the node is supported in clash
 func (ss SS) ClashSupport() bool {
-	if ss.Cipher == "chacha20" {
+	if !ssCipherSupported(ss.Cipher) {
 		return false
 	}
-	if len(ss.Plugin) > 0 && ss.Plugin != "obfs" {
+	if len(ss.Plugin) > 0 && !ssPluginSupported(ss.Plugin) {
 		return false
 	}
 	return true
-}
-
-//ClashRSupport determines whether the node is supported in clashr
-func (ss SS) ClashRSupport() bool {
-	return ss.ClashSupport()
 }
 
 // //MarshalLogObject provides a method to marshal zap object

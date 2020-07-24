@@ -8,7 +8,6 @@ type Node interface {
 	GetName() string
 	SetName(string)
 	ClashSupport() bool
-	ClashRSupport() bool
 	MarshalLogObject(enc zapcore.ObjectEncoder) error
 }
 

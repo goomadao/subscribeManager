@@ -34,12 +34,10 @@ func (ssr *SSR) SetName(name string) {
 
 //ClashSupport determines whether the node is supported in clash
 func (ssr SSR) ClashSupport() bool {
+	if streamCipherSupported(ssr.Cipher) && ssrObfsSupported(ssr.Obfs) && ssrProtocolSupported(ssr.Protocol) {
+		return true
+	}
 	return false
-}
-
-//ClashRSupport determines whether the node is supported in clashr
-func (ssr SSR) ClashRSupport() bool {
-	return true
 }
 
 //MarshalLogObject provides a method to marshal zap object

@@ -51,11 +51,6 @@ func (vmess Vmess) ClashSupport() bool {
 	return true
 }
 
-//ClashRSupport determines whether the node is supported in clashr
-func (vmess Vmess) ClashRSupport() bool {
-	return vmess.ClashSupport()
-}
-
 //MarshalLogObject provides a method to marshal zap object
 func (vmess *Vmess) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("clashType", vmess.ClashType)
