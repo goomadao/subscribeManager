@@ -3,7 +3,8 @@ package data
 //ProxySelector - using regex to select specific proxies in group
 type ProxySelector struct {
 	GroupName string `yaml,json:"groupName" json:"groupName"`
-	Regex     string `yaml,json:"regex" json:"regex"`
+	Include   string `yaml,json:"include" json:"include"`
+	Exclude   string `yaml,json:"exclude" json:"exclude"`
 }
 
 //ClashProxyGroupSelector - determine how to select proxies from groups for clash

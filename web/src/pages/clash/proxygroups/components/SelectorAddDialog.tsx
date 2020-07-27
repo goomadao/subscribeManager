@@ -44,7 +44,8 @@ class SelectorAddDialog extends React.Component<DialogProps, object> {
       proxySelectors: groups.map(group => {
         let result: ProxySelector = {
           groupName: group.name,
-          regex: '',
+          include: '',
+          exclude: '',
           selected: false,
         };
         return result;
@@ -211,14 +212,37 @@ class SelectorAddDialog extends React.Component<DialogProps, object> {
                             <TextField
                               variant="outlined"
                               fullWidth={true}
-                              value={values.proxySelectors[i].regex}
+                              value={values.proxySelectors[i].include}
                               onBlur={handleBlur}
                               onChange={handleChange}
-                              label="正则"
-                              id={`proxySelectors[${i}].regex`}
+                              label="包含节点(正则)"
+                              id={`proxySelectors[${i}].include`}
                             />
                           ) : (
-                            <TextField variant="filled" fullWidth={true} disabled={true} label="正则" />
+                            <TextField
+                              variant="filled"
+                              fullWidth={true}
+                              disabled={true}
+                              label="包含节点(正则)"
+                            />
+                          )}
+                          {values.proxySelectors[i] && values.proxySelectors[i].selected ? (
+                            <TextField
+                              variant="outlined"
+                              fullWidth={true}
+                              value={values.proxySelectors[i].exclude}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
+                              label="排除节点(正则)"
+                              id={`proxySelectors[${i}].exclude`}
+                            />
+                          ) : (
+                            <TextField
+                              variant="filled"
+                              fullWidth={true}
+                              disabled={true}
+                              label="排除节点(正则)"
+                            />
                           )}
                           <Divider variant="fullWidth" style={{ margin: '10px' }} />
                         </>

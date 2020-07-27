@@ -59,12 +59,18 @@ function generateType() {
 function generateProxySelector() {
   let result: ProxySelector = {
     groupName: Random.ctitle(),
-    regex: '',
+    include: '',
+    exclude: '',
     selected: Random.integer(0, 1) ? true : false,
   };
   let count = Random.integer(5, 20);
   for (let i = 0; i < count; i++) {
-    i === count - 1 ? (result.regex += Random.county()) : (result.regex += Random.county() + '|');
+    i === count - 1
+      ? (result.include += Random.county())
+      : (result.include += Random.county() + '|');
+    i === count - 1
+      ? (result.exclude += Random.county())
+      : (result.exclude += Random.county() + '|');
   }
   return result;
 }

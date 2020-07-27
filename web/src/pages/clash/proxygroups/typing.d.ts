@@ -44,7 +44,8 @@ export interface Group {
 
 export interface ProxySelector {
   groupName: string;
-  regex: string;
+  include: string;
+  exclude: string;
   selected: boolean;
 }
 

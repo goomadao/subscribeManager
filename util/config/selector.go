@@ -69,15 +69,27 @@ func UpdateSelectorProxies(name string, selectType string) (data.ClashProxyGroup
 		for _, selector := range config.Selectors[index].ProxySelectors {
 			if group.Name == selector.GroupName {
 				for _, node := range group.Nodes {
-					match, err := regexp.MatchString(selector.Regex, node.GetName())
+					match, err := regexp.MatchString(selector.Include, node.GetName())
 					if err != nil {
-						logger.Logger.Warn("Regex error",
+						logger.Logger.Warn("Include regex error",
 							zap.Error(err))
 						continue
 					}
-					if match {
-						proxies = append(proxies, node)
+					if !match {
+						continue
 					}
+					if len(selector.Exclude) > 0 {
+						match, err = regexp.MatchString(selector.Exclude, node.GetName())
+						if err != nil {
+							logger.Logger.Warn("Exclude regex error",
+								zap.Error(err))
+							continue
+						}
+						if match {
+							continue
+						}
+					}
+					proxies = append(proxies, node)
 				}
 				haveMatch = true
 				break

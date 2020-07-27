@@ -41,12 +41,14 @@ class SelectorEditDialog extends React.Component<DialogProps, object> {
     let proxySelectors = groups.map(group => {
       let result: ProxySelector = {
         groupName: group.name,
-        regex: '',
+        include: '',
+        exclude: '',
         selected: false,
       };
       let index = selector.proxySelectors?.findIndex(selector => selector.groupName === group.name);
       if (index > -1) {
-        result.regex = selector.proxySelectors[index].regex;
+        result.include = selector.proxySelectors[index].include;
+        result.exclude = selector.proxySelectors[index].exclude;
         result.selected = true;
       }
       return result;
@@ -209,14 +211,37 @@ class SelectorEditDialog extends React.Component<DialogProps, object> {
                             <TextField
                               variant="outlined"
                               fullWidth={true}
-                              value={values.proxySelectors[i].regex}
+                              value={values.proxySelectors[i].include}
                               onBlur={handleBlur}
                               onChange={handleChange}
-                              label="正则"
-                              id={`proxySelectors[${i}].regex`}
+                              label="包含节点(正则)"
+                              id={`proxySelectors[${i}].exclude`}
                             />
                           ) : (
-                            <TextField variant="filled" fullWidth={true} disabled={true} label="正则" />
+                            <TextField
+                              variant="filled"
+                              fullWidth={true}
+                              disabled={true}
+                              label="包含节点(正则)"
+                            />
+                          )}
+                          {values.proxySelectors[i] && values.proxySelectors[i].selected ? (
+                            <TextField
+                              variant="outlined"
+                              fullWidth={true}
+                              value={values.proxySelectors[i].exclude}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
+                              label="排除节点(正则)"
+                              id={`proxySelectors[${i}].exclude`}
+                            />
+                          ) : (
+                            <TextField
+                              variant="filled"
+                              fullWidth={true}
+                              disabled={true}
+                              label="排除节点(正则)"
+                            />
                           )}
                           <Divider variant="fullWidth" style={{ margin: '10px' }} />
                         </>
