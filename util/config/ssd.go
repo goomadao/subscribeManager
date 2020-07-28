@@ -9,7 +9,7 @@ import (
 )
 
 func decodeSSD(bts []byte) (nodes []data.Node, err error) {
-	ssd, err := base64.RawURLEncoding.DecodeString(string(bts))
+	ssd, err := base64.RawStdEncoding.DecodeString(string(bts))
 	if err != nil {
 		logger.Logger.Warn("Decode ssd subscribe link fail",
 			zap.Error(err))
