@@ -42,6 +42,12 @@ func decodeClashProxy(proxy data.RawNode) (data.Node, error) {
 	} else if proxy.Type == "ssr" {
 		Node2SSR(&proxy)
 		return &proxy.SSR, nil
+	} else if proxy.Type == "http" {
+		Node2HTTP(&proxy)
+		return &proxy.HTTP, nil
+	} else if proxy.Type == "socks5" {
+		Node2Socks5(&proxy)
+		return &proxy.Socks5, nil
 	}
 	logger.Logger.Warn("Unsupported type")
 	return nil, errors.New("Unsupported type")

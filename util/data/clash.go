@@ -1,6 +1,6 @@
 package data
 
-//ProxyGroup - clash proxy group option
+// ProxyGroups - clash proxy group option
 type ProxyGroups struct {
 	Name     string   `yaml:"name"`
 	Type     string   `yaml:"type"`

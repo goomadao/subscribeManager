@@ -36,10 +36,15 @@ type RawNode struct {
 	Network   string    `json:"-" yaml:"network,omitempty"`
 	WSPath    string    `json:"-" yaml:"ws-path,omitempty"`
 	WSHeaders WSHeaders `json:"-" yaml:"ws-headers,omitempty"`
+	//HTTP
+	Username       string `json:"-" yaml:"username,omitempty"`
+	SkipCertVerify bool   `json:"-" yaml:"skipCertVerify,omitempty"`
 
-	SS    SS    `yaml:"-"`
-	SSR   SSR   `yaml:"-"`
-	Vmess Vmess `yaml:"-"`
+	SS     SS     `yaml:"-"`
+	SSR    SSR    `yaml:"-"`
+	Vmess  Vmess  `yaml:"-"`
+	HTTP   HTTP   `yaml:"-"`
+	Socks5 Socks5 `yaml:"-"`
 }
 
 //MarshalLogObject provides a method to marshal zap object
@@ -48,8 +53,13 @@ func (n *RawNode) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("server", n.Server)
 	enc.AddString("name", n.Name)
 	enc.AddInt("port", n.Port)
-	enc.AddString("cipher", n.Cipher)
 	enc.AddString("password", n.Password)
+	if n.Type == "http" {
+		enc.AddString("username", n.Username)
+		enc.AddBool("skipCertVerify", n.SkipCertVerify)
+		return nil
+	}
+	enc.AddString("cipher", n.Cipher)
 	if n.Type == "ss" {
 		enc.AddString("plugin", n.Plugin)
 		enc.AddString("obfs", n.PluginOpts.Obfs)

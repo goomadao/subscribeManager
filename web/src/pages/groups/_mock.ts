@@ -49,6 +49,25 @@ function generateVmess() {
   };
 }
 
+function generateHTTP() {
+  return {
+    nodeType: 'http',
+    server: `${Random.domain()}`,
+    remarks: `${Random.region()} ${Random.county()} ${Random.integer(1, 10)}`,
+    port: Random.integer(1024, 65536),
+    username: `${Random.sentence(1)}`,
+    password: `${Random.sentence(1)}`,
+    tls: !!Random.integer(0, 1) ? 'true' : 'false',
+    skipCertVerify: !!Random.integer(0, 1),
+  };
+}
+
+function generateSocks5() {
+  let socks5 = generateHTTP();
+  socks5.nodeType = 'socks5';
+  return socks5;
+}
+
 function generateGroup() {
   const result: {
     name: string;
@@ -62,13 +81,17 @@ function generateGroup() {
     lastUpdate: Random.datetime(),
   };
   for (let i = 0; i < 50; i++) {
-    let rd = Random.integer(0, 2);
+    let rd = Random.integer(0, 4);
     if (rd == 0) {
       result.nodes.push(generateSS());
     } else if (rd == 1) {
       result.nodes.push(generateSSR());
     } else if (rd == 2) {
       result.nodes.push(generateVmess());
+    } else if (rd == 3) {
+      result.nodes.push(generateHTTP());
+    } else if (rd == 4) {
+      result.nodes.push(generateSocks5());
     }
   }
   return result;

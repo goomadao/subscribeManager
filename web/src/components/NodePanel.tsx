@@ -74,6 +74,26 @@ interface VmessConfig {
   tls: string;
 }
 
+interface HTTPConfig {
+  server: string;
+  name: string;
+  port: number;
+  username: string;
+  password: string;
+  tls: string;
+  skipCertVerify: boolean;
+}
+
+interface Socks5Config {
+  server: string;
+  name: string;
+  port: number;
+  username: string;
+  password: string;
+  tls: string;
+  skipCertVerify: boolean;
+}
+
 function a11yProps(index: any) {
   return {
     id: `simple-tab-${index}`,
@@ -157,6 +177,34 @@ class NodePanel extends React.Component<PanelProps, PanelState> {
     return vmess;
   };
 
+  renderHTTPJson = () => {
+    const { node } = this.props;
+    let http: HTTPConfig = {
+      server: node.server || '',
+      name: node.remarks || '',
+      port: node.port || 0,
+      username: node.username || '',
+      password: node.password || '',
+      tls: node.tls || '',
+      skipCertVerify: node.skipCertVerify || false,
+    };
+    return http;
+  };
+
+  renderSocks5Json = () => {
+    const { node } = this.props;
+    let socks5: Socks5Config = {
+      server: node.server || '',
+      name: node.remarks || '',
+      port: node.port || 0,
+      username: node.username || '',
+      password: node.password || '',
+      tls: node.tls || '',
+      skipCertVerify: node.skipCertVerify || false,
+    };
+    return socks5;
+  };
+
   renderJson = () => {
     const { node } = this.props;
     let res: any = {};
@@ -169,6 +217,12 @@ class NodePanel extends React.Component<PanelProps, PanelState> {
         break;
       case 'vmess':
         res = this.renderVmessJson();
+        break;
+      case 'http':
+        res = this.renderHTTPJson();
+        break;
+      case 'socks5':
+        res = this.renderSocks5Json();
         break;
       default:
         return <div>error</div>;
@@ -269,11 +323,19 @@ class NodePanel extends React.Component<PanelProps, PanelState> {
     return <QRCode value={link} />;
   };
 
+  renderLinkAndQRCode = () => {
+    const { node } = this.props;
+    if (node.nodeType === 'http' || node.nodeType === 'socks5') {
+      return false;
+    }
+    return true;
+  };
+
   render() {
     const { open, handleNodePanelClose } = this.props;
     const { tabValue } = this.state;
     return (
-      <Dialog open={open} onClose={handleNodePanelClose}>
+      <Dialog open={open} onClose={handleNodePanelClose} fullWidth={true}>
         {/* <div className={this.classes.root}> */}
         {/* <div style={{ height: 480 }}> */}
         {/* <AppBar position="static"> */}
@@ -300,18 +362,24 @@ class NodePanel extends React.Component<PanelProps, PanelState> {
             <Divider />
             <CardContent>{this.renderJson()}</CardContent>
           </Card>
-          <Card style={{ margin: '10px' }}>
-            <CardHeader title="链接" />
-            <Divider />
-            <CardContent>{this.renderLink()}</CardContent>
-          </Card>
-          <Card style={{ margin: '10px' }}>
-            <CardHeader title="二维码" />
-            <Divider />
-            <CardContent>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>{this.renderQRCode()}</div>
-            </CardContent>
-          </Card>
+          {this.renderLinkAndQRCode() && (
+            <Card style={{ margin: '10px' }}>
+              <CardHeader title="链接" />
+              <Divider />
+              <CardContent>{this.renderLink()}</CardContent>
+            </Card>
+          )}
+          {this.renderLinkAndQRCode() && (
+            <Card style={{ margin: '10px' }}>
+              <CardHeader title="二维码" />
+              <Divider />
+              <CardContent>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  {this.renderQRCode()}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
         {/* </div> */}
       </Dialog>

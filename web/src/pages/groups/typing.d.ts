@@ -32,6 +32,9 @@ export interface Node {
   ps?: string;
   id?: string;
   class?: number;
+
+  username?: string;
+  skipCertVerify?: boolean;
 }
 
 export interface Group {
