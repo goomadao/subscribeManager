@@ -26,7 +26,7 @@ func (http HTTP) GetName() string {
 }
 
 // SetName sets node's name
-func (http HTTP) SetName(name string) {
+func (http *HTTP) SetName(name string) {
 	http.Name = name
 }
 
@@ -36,7 +36,7 @@ func (http HTTP) ClashSupport() bool {
 }
 
 // MarshalLogObject provides a method to marshal zap object
-func (http HTTP) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (http *HTTP) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("type", http.Type)
 	enc.AddString("server", http.Server)
 	enc.AddString("name", http.Name)

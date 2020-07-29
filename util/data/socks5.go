@@ -1,6 +1,8 @@
 package data
 
-import "go.uber.org/zap/zapcore"
+import (
+	"go.uber.org/zap/zapcore"
+)
 
 // Socks5 struct
 type Socks5 struct {
@@ -26,7 +28,7 @@ func (s Socks5) GetName() string {
 }
 
 // SetName sets node's name
-func (s Socks5) SetName(name string) {
+func (s *Socks5) SetName(name string) {
 	s.Name = name
 }
 
@@ -36,7 +38,7 @@ func (s Socks5) ClashSupport() bool {
 }
 
 // MarshalLogObject provides a method to marshal zap object
-func (s Socks5) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (s *Socks5) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("type", s.Type)
 	enc.AddString("server", s.Server)
 	enc.AddString("name", s.Name)
