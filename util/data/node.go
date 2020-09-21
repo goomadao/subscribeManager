@@ -36,13 +36,16 @@ type RawNode struct {
 	Network   string    `json:"-" yaml:"network,omitempty"`
 	WSPath    string    `json:"-" yaml:"ws-path,omitempty"`
 	WSHeaders WSHeaders `json:"-" yaml:"ws-headers,omitempty"`
+	//Trojan
+	Sni            string `json:"-" yaml:"sni,omitempty"`
+	SkipCertVerify bool   `json:"-" yaml:"skip-cert-verify,omitempty"`
 	//HTTP
-	Username       string `json:"-" yaml:"username,omitempty"`
-	SkipCertVerify bool   `json:"-" yaml:"skipCertVerify,omitempty"`
+	Username string `json:"-" yaml:"username,omitempty"`
 
 	SS     SS     `yaml:"-"`
 	SSR    SSR    `yaml:"-"`
 	Vmess  Vmess  `yaml:"-"`
+	Trojan Trojan `yaml:"-"`
 	HTTP   HTTP   `yaml:"-"`
 	Socks5 Socks5 `yaml:"-"`
 }

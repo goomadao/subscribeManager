@@ -202,6 +202,10 @@ func decode(bts []byte) (nodes []data.Node, err error) {
 			// 	return nil, err
 			// }
 			return nodes, nil
+		} else if strings.Index(string(decodeBytes), "trojan") == 0 {
+			logger.Logger.Debug("Decoded: " + string(decodeBytes))
+			nodes, _ = decodeTrojan(decodeBytes)
+			return nodes, nil
 		}
 	}
 	logger.Logger.Debug("StdEncoding fail.", zap.Error(err))

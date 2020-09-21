@@ -42,6 +42,9 @@ func decodeClashProxy(proxy data.RawNode) (data.Node, error) {
 	} else if proxy.Type == "ssr" {
 		Node2SSR(&proxy)
 		return &proxy.SSR, nil
+	} else if proxy.Type == "trojan" {
+		Node2Trojan(&proxy)
+		return &proxy.Trojan, nil
 	} else if proxy.Type == "http" {
 		Node2HTTP(&proxy)
 		return &proxy.HTTP, nil
