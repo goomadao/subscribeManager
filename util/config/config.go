@@ -105,6 +105,7 @@ func LoadConfig() {
 		selectors = append(selectors, selector)
 	}
 	config = &data.Config{
+		IPv6:      rawConfig.IPv6,
 		Groups:    groups,
 		Selectors: selectors,
 		Rules:     rawConfig.Rules,

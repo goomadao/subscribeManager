@@ -14,6 +14,7 @@ type Clash struct {
 	Port               int           `yaml:"port"`
 	SocksPort          int           `yaml:"socks-port"`
 	AllowLan           bool          `yaml:"allow-lan"`
+	IPv6               bool          `yaml:"ipv6"`
 	Mode               string        `yaml:"rule"`
 	LogLevel           string        `yaml:"log-level"`
 	ExternalController string        `yaml:"external-controller"`

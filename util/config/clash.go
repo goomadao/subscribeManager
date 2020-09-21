@@ -66,6 +66,7 @@ func GenerateClashConfig() []byte {
 		LogLevel:           "info",
 		ExternalController: "0.0.0.0:9090",
 	}
+	clash.IPv6 = config.IPv6
 	proxies := make(map[string]data.Node)
 	originalNames := make(map[data.Node]string)
 	for idx := range config.Groups {
